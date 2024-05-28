@@ -1,0 +1,39 @@
+{
+  "useDefaultUi": true,
+  "useDefaultHaptic": true,
+  "defaultUiConfig": {
+    "distanceIndicatorConfig": {
+      "visible": true,
+      "textOk": "Mantenha a distância.",
+      "textMoveCloser": "Chegue mais perto.",
+      "textMoveAway": "Aumente a distância."
+    },
+    "focusPointTooltipConfig": {
+      "visible": true,
+      "text": "Mova o dispositivo para frente e para trás para detectar o pneu."
+    },
+    "howToScanTooltipConfig": {
+      "visible": true,
+      "text": "Alinhe o pneu com a máscara."
+    },
+    "tapToStartScanningTooltipConfig": {
+      "visible": true,
+      "text": "Toque na tela para iniciar o processo."
+    },
+    "tireOverlayConfig": {
+      "visible": true
+    },
+    "uploadViewConfig": {
+      "visible": true,
+      "text": "Enviando imagens, aguarde."
+    },
+    "progressTimerConfig": {
+      "visible": true
+    },
+    "lineProgressBarConfig": {
+      "visible": true
+    }
+  },
+  "scanSpeed": "Fast",
+  "measurementSystem": "Metric"
+}

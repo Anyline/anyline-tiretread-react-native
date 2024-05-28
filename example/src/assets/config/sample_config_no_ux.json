@@ -1,0 +1,31 @@
+{
+  "useDefaultUi": true,
+  "defaultUiConfig": {
+    "distanceIndicatorConfig": {
+      "visible": false
+    },
+    "focusPointTooltipConfig": {
+      "visible": false
+    },
+    "howToScanTooltipConfig": {
+      "visible": false
+    },
+    "tapToStartScanningTooltipConfig": {
+      "visible": false
+    },
+    "tireOverlayConfig": {
+      "visible": false
+    },
+    "uploadViewConfig": {
+      "visible": false
+    },
+    "progressTimerConfig": {
+      "visible": false
+    },
+    "lineProgressBarConfig": {
+      "visible": false
+    }
+  },
+  "scanSpeed": "Fast",
+  "measurementSystem": "Metric"
+}
