@@ -32,6 +32,16 @@ $ yarn add $(path_to_anyline-ttr-mobile-wrapper-react-native)
 
 ## Linking
 Ensure the package is linked correctly. If you face linking issues, ensure you have run `pod install` (for iOS) and rebuilt your app after installation.
+You also might have to link the project:
+```sh
+npx react-native link anyline-ttr-mobile-wrapper-react-native
+```
+
+## Android Example Source
+You will also have to add the custom maven repository path to your build.gradle.
+```gradle
+maven { url "https://europe-maven.pkg.dev/anyline-ttr-sdk/maven" }
+```
 
 ## Example
 Please have a look at the working example in the repository. It provides you with sample code for the full integration.
