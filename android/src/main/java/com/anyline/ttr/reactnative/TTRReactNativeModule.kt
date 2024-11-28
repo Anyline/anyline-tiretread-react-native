@@ -6,9 +6,11 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import io.anyline.tiretread.sdk.AnylineTireTreadSdk
+import io.anyline.tiretread.sdk.Response
 import io.anyline.tiretread.sdk.SdkInitializeFailedException
 import io.anyline.tiretread.sdk.SdkLicenseKeyInvalidException
 import io.anyline.tiretread.sdk.getTreadDepthReportResult
+import io.anyline.tiretread.sdk.init
 import io.anyline.tiretread.sdk.types.TreadDepthResult
 import io.anyline.tiretread.sdk.types.toJson
 
@@ -34,9 +36,9 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
           promise.reject("E_ACTIVITY_DOES_NOT_EXIST", "Activity does not exist")
         }
       } catch (e: SdkLicenseKeyInvalidException) {
-        promise.reject("E_LICENSE_KEY_INVALID", "The provided license key is invalid")
+        promise.reject("E_LICENSE_KEY_INVALID", e.localizedMessage)
       } catch (e: SdkInitializeFailedException) {
-        promise.reject("E_INITIALIZATION_FAILED", "Initialization failed")
+        promise.reject("E_INITIALIZATION_FAILED", e.localizedMessage)
       }
     }.start()
   }
@@ -67,11 +69,25 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun getTreadDepthReportResult(measurementUuid: String, promise: Promise) {
     Thread {
-      AnylineTireTreadSdk.getTreadDepthReportResult(measurementUuid, { result: TreadDepthResult ->
+      AnylineTireTreadSdk.getTreadDepthReportResult(measurementUuid, onResponse = { response: Response<TreadDepthResult> ->
 
-        currentActivity?.runOnUiThread { promise.resolve(result.toJson()) }
-      }, {
-        currentActivity?.runOnUiThread { promise.reject(it.errorCode, it.errorMessage) }
+        when(response){
+          is Response.Success -> {
+            currentActivity?.runOnUiThread { promise.resolve(response.data.toJson()) }
+          }
+          is Response.Error -> {
+            promise.reject(
+              response.errorCode ?: "UNKNOWN_ERROR",
+              response.errorMessage ?: "Unknown error occurred"
+            )
+          }
+          is Response.Exception -> {
+            promise.reject(
+              "EXCEPTION",
+              response.exception.message ?: "An exception occurred"
+            )
+          }
+        }
       })
     }.start()
   }
