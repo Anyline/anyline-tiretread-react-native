@@ -6,14 +6,8 @@ class AnylineTtrMobileWrapperReactNative: NSObject {
     @objc(initTireTread:withResolver:withRejecter:)
     func initTireTread(licenseKey: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
         DispatchQueue.main.async {
-            
-            guard let currentViewController = RCTPresentedViewController() else {
-                reject("1005", "Activity does not exist", nil)
-                return
-            }
-          
             do {
-                try AnylineTireTreadSdk.companion.doInit(licenseKey: licenseKey, context: currentViewController)
+              try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
                 NSLog("Success")
                 resolve("Initialization successful")
             } catch let error as NSError {
@@ -50,11 +44,24 @@ class AnylineTtrMobileWrapperReactNative: NSObject {
     func getTreadDepthReportResult(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
     
         do {
-            try AnylineTireTreadSdk.companion.getTreadDepthReportResult(measurementUuid: measurementUuid, onGetTreadDepthReportResultSucceeded: { result in
-                resolve(result.toJson())
-            }, onGetTreadDepthReportResultFailed: { error in
-                reject(error.errorCode, error.errorMessage, nil)
-            }, timeoutSeconds: 30)
+          try AnylineTireTreadSdk.shared.getTreadDepthReportResult(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
+              guard let self = self else { return }
+
+              switch(response) {
+                  case let response as ResponseSuccess<TreadDepthResult>:
+                      resolve(response.data.toJson())
+                      break;
+                  case let response as ResponseError<TreadDepthResult>:
+                      reject(response.errorCode, response.errorMessage, nil)
+                      break;
+                  case let response as ResponseException<TreadDepthResult>:
+                      reject(nil, response.exception.description(), nil)
+                      break;
+                  default:
+                      // This state cannot be reached
+                      break;
+              }
+          })
         } catch let error as NSError {
             reject(String(error.code), error.localizedDescription, error)
         }
