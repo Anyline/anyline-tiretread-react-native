@@ -13,6 +13,7 @@ import {
   initTireTread,
   startTireTreadScanActivity,
   getTreadDepthReportResult,
+  isMinimumIOSVersionForTTR,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
 const portugeseConfig = JSON.stringify(
@@ -65,15 +66,19 @@ export default function App() {
   }, [isProcessing, startWiggleAnimation, wiggleAnim]);
 
   const handleInitPress = () => {
-    initTireTread('license_key')
-      .then((response) => {
-        setInitResult(response);
-        setError(undefined);
-      })
-      .catch((e) => {
-        setError('Initialization failed: ' + e.message);
-        setInitResult(undefined);
-      });
+    if (isMinimumIOSVersionForTTR()) {
+      initTireTread('license_key')
+        .then((response) => {
+          setInitResult(response);
+          setError(undefined);
+        })
+        .catch((e) => {
+          setError('Initialization failed: ' + e.message);
+          setInitResult(undefined);
+        });
+    } else {
+      setError('Minimum iOS version required is 16.4');
+    }
   };
 
   const requestCameraPermission = async (): Promise<boolean> => {

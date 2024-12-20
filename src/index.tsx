@@ -26,6 +26,10 @@ export function startTireTreadScanActivity(config: string): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(config);
 }
 
+export function isMinimumIOSVersionForTTR(): boolean {
+  if (Platform.OS !== 'ios') return false;
+  return parseFloat(Platform.Version) >= 16.4;
+}
 export function getTreadDepthReportResult(
   measurementUuid: string
 ): Promise<string> {
