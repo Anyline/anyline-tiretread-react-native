@@ -7,6 +7,7 @@ RCT_EXTERN_METHOD(initTireTread:(NSString)licenseKey
                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(startTireTreadScanActivity:(NSString)config
+                 tireWidth:(NSInteger)tireWidth
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 

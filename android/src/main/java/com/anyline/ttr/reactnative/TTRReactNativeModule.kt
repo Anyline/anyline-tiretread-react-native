@@ -44,7 +44,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun startTireTreadScanActivity(config: String, promise: Promise) {
+  fun startTireTreadScanActivity(config: String, tireWidth: Integer, promise: Promise) {
     val currentActivity = currentActivity
     if (currentActivity != null) {
 
@@ -62,6 +62,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
       val intent = Intent(currentActivity, TTRReactNativeScanActivity::class.java)
       intent.putExtra("config", config)
+      intent.putExtra("tireWidth", tireWidth)
       currentActivity.startActivity(intent)
     }
   }
