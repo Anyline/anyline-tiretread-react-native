@@ -6,7 +6,7 @@
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
 
-@class ATTSAnylineTireTreadSdk, ATTSKotlinThrowable, ATTSKotlinArray<T>, ATTSKotlinException, ATTSResponse<T>, ATTSKotlinEnumCompanion, ATTSKotlinEnum<E>, ATTSDistanceStatus, ATTSMeasurementSystem, ATTSScanSpeedCompanion, ATTSScanSpeed, ATTSTireTreadScanViewConfigCompanion, ATTSAdditionalContext, ATTSDefaultUiConfig, ATTSTireTreadScannerCompanion, ATTSTireTreadScanViewConfig, ATTSTireTreadScanner, UIViewController, ATTSAdditionalContextCompanion, ATTSTirePosition, ATTSHeatmapCompanion, ATTSHeatmap, ATTSMeasurementInfoCompanion, ATTSMeasurementInfo, ATTSMeasurementStatus, ATTSMeasurementStatusCompanion, ATTSTireSide, ATTSTirePositionCompanion, ATTSTireSideCompanion, ATTSTreadDepthResultCompanion, ATTSTreadDepthResult, ATTSTreadResultRegion, ATTSTreadResultRegionCompanion, ATTSDefaultUiConfigCompanion, ATTSDistanceIndicatorConfig, ATTSFocusPointTooltipConfig, ATTSHowToScanTooltipConfig, ATTSLineProgressBarConfig, ATTSOrientationWarningConfig, ATTSProgressTimerConfig, ATTSTapToStartScanningTooltipConfig, ATTSTireOverlayConfig, ATTSUploadViewConfig, ATTSDistanceIndicatorConfigCompanion, ATTSFocusPointTooltipConfigCompanion, ATTSHowToScanTooltipConfigCompanion, ATTSLineProgressBarConfigCompanion, ATTSOrientationWarningConfigCompanion, ATTSProgressTimerConfigCompanion, ATTSTapToStartScanningTooltipConfigCompanion, ATTSTireOverlayConfigCompanion, ATTSUploadViewConfigCompanion, ATTSKotlinByteArray, ATTSKotlinByteIterator, NSData, ATTSKotlinx_serialization_coreSerializersModule, ATTSKotlinx_serialization_coreSerialKind, ATTSKotlinNothing;
+@class ATTSAnylineTireTreadSdk, ATTSKotlinThrowable, ATTSKotlinArray<T>, ATTSKotlinException, ATTSResponse<T>, ATTSKotlinEnumCompanion, ATTSKotlinEnum<E>, ATTSDistanceStatus, ATTSMeasurementSystem, ATTSScanSpeedCompanion, ATTSScanSpeed, ATTSTireTreadScanViewConfigCompanion, ATTSAdditionalContext, ATTSDefaultUiConfig, ATTSTireTreadScannerCompanion, ATTSTireTreadScanViewConfig, ATTSTireTreadScanner, UIViewController, ATTSAdditionalContextCompanion, ATTSTirePosition, ATTSHeatmapCompanion, ATTSHeatmap, ATTSMeasurementInfoCompanion, ATTSMeasurementInfo, ATTSMeasurementStatus, ATTSMeasurementStatusCompanion, ATTSTireSide, ATTSTirePositionCompanion, ATTSTireSideCompanion, ATTSTreadDepthResultCompanion, ATTSTreadDepthResult, ATTSTreadResultRegion, ATTSTreadResultRegionCompanion, ATTSCountdownConfigCompanion, ATTSDefaultUiConfigCompanion, ATTSCountdownConfig, ATTSDistanceIndicatorConfig, ATTSFocusPointTooltipConfig, ATTSOrientationWarningConfig, ATTSScanDirectionConfig, ATTSTapToStartScanningTooltipConfig, ATTSTireOverlayConfig, ATTSTireWidthInputConfig, ATTSUploadViewConfig, ATTSDistanceIndicatorConfigCompanion, ATTSFocusPointTooltipConfigCompanion, ATTSOrientationWarningConfigCompanion, ATTSScanDirectionConfigCompanion, ATTSTapToStartScanningTooltipConfigCompanion, ATTSTireOverlayConfigCompanion, ATTSTireWidthInputConfigCompanion, ATTSUploadViewConfigCompanion, ATTSKotlinByteArray, ATTSKotlinByteIterator, NSData, ATTSKotlinx_serialization_coreSerializersModule, ATTSKotlinx_serialization_coreSerialKind, ATTSKotlinNothing;
 
 @protocol ATTSKotlinComparable, ATTSKotlinx_serialization_coreKSerializer, ATTSTireTreadScanViewCallback, ATTSKotlinIterator, ATTSKotlinx_serialization_coreEncoder, ATTSKotlinx_serialization_coreSerialDescriptor, ATTSKotlinx_serialization_coreSerializationStrategy, ATTSKotlinx_serialization_coreDecoder, ATTSKotlinx_serialization_coreDeserializationStrategy, ATTSKotlinx_serialization_coreCompositeEncoder, ATTSKotlinAnnotation, ATTSKotlinx_serialization_coreCompositeDecoder, ATTSKotlinx_serialization_coreSerializersModuleCollector, ATTSKotlinKClass, ATTSKotlinKDeclarationContainer, ATTSKotlinKAnnotatedElement, ATTSKotlinKClassifier;
 
@@ -151,7 +151,7 @@ __attribute__((swift_name("AnylineTireTreadSdk")))
 + (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
 + (instancetype)anylineTireTreadSdk __attribute__((swift_name("init()")));
 @property (class, readonly, getter=shared) ATTSAnylineTireTreadSdk *shared __attribute__((swift_name("shared")));
-@property (readonly) BOOL isInitialized __attribute__((swift_name("isInitialized")));
+@property BOOL isInitialized __attribute__((swift_name("isInitialized")));
 @property (readonly) NSString *sdkVersion __attribute__((swift_name("sdkVersion")));
 @end
 
@@ -198,6 +198,17 @@ __attribute__((swift_name("FractionDenominatorLessThanOrEqualZeroException")))
 __attribute__((objc_subclassing_restricted))
 __attribute__((swift_name("InvalidUuidException")))
 @interface ATTSInvalidUuidException : ATTSKotlinException
+- (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
++ (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
+- (instancetype)initWithMessage:(NSString * _Nullable)message __attribute__((swift_name("init(message:)"))) __attribute__((objc_designated_initializer)) __attribute__((unavailable));
+- (instancetype)initWithCause:(ATTSKotlinThrowable * _Nullable)cause __attribute__((swift_name("init(cause:)"))) __attribute__((objc_designated_initializer)) __attribute__((unavailable));
+- (instancetype)initWithMessage:(NSString * _Nullable)message cause:(ATTSKotlinThrowable * _Nullable)cause __attribute__((swift_name("init(message:cause:)"))) __attribute__((objc_designated_initializer)) __attribute__((unavailable));
+@property (readonly) NSString *message __attribute__((swift_name("message")));
+@end
+
+__attribute__((objc_subclassing_restricted))
+__attribute__((swift_name("NoConnectionException")))
+@interface ATTSNoConnectionException : ATTSKotlinException
 - (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
 + (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
 - (instancetype)initWithMessage:(NSString * _Nullable)message __attribute__((swift_name("init(message:)"))) __attribute__((objc_designated_initializer)) __attribute__((unavailable));
@@ -470,13 +481,8 @@ __attribute__((swift_name("TireTreadScanner")))
 - (void)abortScanning __attribute__((swift_name("abortScanning()")));
 - (void)startScanning __attribute__((swift_name("startScanning()")));
 - (void)stopScanning __attribute__((swift_name("stopScanning()")));
-@property ATTSAdditionalContext * _Nullable additionalContext __attribute__((swift_name("additionalContext")));
 @property ATTSDistanceStatus *captureDistanceStatus __attribute__((swift_name("captureDistanceStatus")));
 @property (readonly) BOOL isScanning __attribute__((swift_name("isScanning")));
-@property ATTSMeasurementSystem *measurementSystem __attribute__((swift_name("measurementSystem")));
-@property ATTSScanSpeed *scanSpeed __attribute__((swift_name("scanSpeed")));
-@property BOOL useDefaultHaptic __attribute__((swift_name("useDefaultHaptic")));
-@property BOOL useDefaultUi __attribute__((swift_name("useDefaultUi")));
 @end
 
 __attribute__((objc_subclassing_restricted))
@@ -490,16 +496,6 @@ __attribute__((swift_name("TireTreadScanner.Companion")))
 - (void)doInitConfig:(NSString *)config tireWidth:(ATTSInt * _Nullable)tireWidth callback:(id<ATTSTireTreadScanViewCallback> _Nullable)callback onInitializationFailed_:(void (^ _Nullable)(ATTSKotlinException *))onInitializationFailed __attribute__((swift_name("doInit(config:tireWidth:callback:onInitializationFailed_:)")));
 @property ATTSTireTreadScanner *instance __attribute__((swift_name("instance")));
 @property BOOL isInitialized __attribute__((swift_name("isInitialized")));
-@end
-
-__attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("TreadDepthMeasureSessionCallback")))
-@interface ATTSTreadDepthMeasureSessionCallback : ATTSBase
-- (instancetype)initWithOnImageUploaded:(void (^)(NSString *, ATTSInt *, ATTSInt *))onImageUploaded onUploadCompleted:(void (^)(NSString *))onUploadCompleted onUploadFailed:(void (^)(NSString *, ATTSKotlinException *))onUploadFailed onUploadAborted:(void (^)(NSString *))onUploadAborted __attribute__((swift_name("init(onImageUploaded:onUploadCompleted:onUploadFailed:onUploadAborted:)"))) __attribute__((objc_designated_initializer));
-@property (readonly) void (^onImageUploaded)(NSString *, ATTSInt *, ATTSInt *) __attribute__((swift_name("onImageUploaded")));
-@property (readonly) void (^onUploadAborted)(NSString *) __attribute__((swift_name("onUploadAborted")));
-@property (readonly) void (^onUploadCompleted)(NSString *) __attribute__((swift_name("onUploadCompleted")));
-@property (readonly) void (^onUploadFailed)(NSString *, ATTSKotlinException *) __attribute__((swift_name("onUploadFailed")));
 @end
 
 __attribute__((swift_name("ScannerViewControllerHolder")))
@@ -751,19 +747,43 @@ __attribute__((swift_name("TreadResultRegion.Companion")))
  *   kotlinx.serialization.Serializable
 */
 __attribute__((objc_subclassing_restricted))
+__attribute__((swift_name("CountdownConfig")))
+@interface ATTSCountdownConfig : ATTSBase
+- (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
++ (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
+@property (class, readonly, getter=companion) ATTSCountdownConfigCompanion *companion __attribute__((swift_name("companion")));
+@property BOOL visible __attribute__((swift_name("visible")));
+@end
+
+__attribute__((objc_subclassing_restricted))
+__attribute__((swift_name("CountdownConfig.Companion")))
+@interface ATTSCountdownConfigCompanion : ATTSBase
++ (instancetype)alloc __attribute__((unavailable));
++ (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
++ (instancetype)companion __attribute__((swift_name("init()")));
+@property (class, readonly, getter=shared) ATTSCountdownConfigCompanion *shared __attribute__((swift_name("shared")));
+- (id<ATTSKotlinx_serialization_coreKSerializer>)serializer __attribute__((swift_name("serializer()")));
+@end
+
+
+/**
+ * @note annotations
+ *   kotlinx.serialization.Serializable
+*/
+__attribute__((objc_subclassing_restricted))
 __attribute__((swift_name("DefaultUiConfig")))
 @interface ATTSDefaultUiConfig : ATTSBase
 - (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
 + (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
 @property (class, readonly, getter=companion) ATTSDefaultUiConfigCompanion *companion __attribute__((swift_name("companion")));
+@property ATTSCountdownConfig *countdownConfig __attribute__((swift_name("countdownConfig")));
 @property ATTSDistanceIndicatorConfig *distanceIndicatorConfig __attribute__((swift_name("distanceIndicatorConfig")));
 @property ATTSFocusPointTooltipConfig *focusPointTooltipConfig __attribute__((swift_name("focusPointTooltipConfig")));
-@property ATTSHowToScanTooltipConfig *howToScanTooltipConfig __attribute__((swift_name("howToScanTooltipConfig")));
-@property ATTSLineProgressBarConfig *lineProgressBarConfig __attribute__((swift_name("lineProgressBarConfig")));
 @property ATTSOrientationWarningConfig *orientationWarningConfig __attribute__((swift_name("orientationWarningConfig")));
-@property ATTSProgressTimerConfig *progressTimerConfig __attribute__((swift_name("progressTimerConfig")));
+@property ATTSScanDirectionConfig *scanDirectionConfig __attribute__((swift_name("scanDirectionConfig")));
 @property ATTSTapToStartScanningTooltipConfig *tapToStartScanningTooltipConfig __attribute__((swift_name("tapToStartScanningTooltipConfig")));
 @property ATTSTireOverlayConfig *tireOverlayConfig __attribute__((swift_name("tireOverlayConfig")));
+@property ATTSTireWidthInputConfig *tireWidthInputConfig __attribute__((swift_name("tireWidthInputConfig")));
 @property ATTSUploadViewConfig *uploadViewConfig __attribute__((swift_name("uploadViewConfig")));
 @end
 
@@ -815,6 +835,7 @@ __attribute__((swift_name("FocusPointTooltipConfig")))
 - (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
 + (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
 @property (class, readonly, getter=companion) ATTSFocusPointTooltipConfigCompanion *companion __attribute__((swift_name("companion")));
+@property NSString *smallText __attribute__((swift_name("smallText")));
 @property NSString *text __attribute__((swift_name("text")));
 @property BOOL visible __attribute__((swift_name("visible")));
 @end
@@ -826,55 +847,6 @@ __attribute__((swift_name("FocusPointTooltipConfig.Companion")))
 + (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
 + (instancetype)companion __attribute__((swift_name("init()")));
 @property (class, readonly, getter=shared) ATTSFocusPointTooltipConfigCompanion *shared __attribute__((swift_name("shared")));
-- (id<ATTSKotlinx_serialization_coreKSerializer>)serializer __attribute__((swift_name("serializer()")));
-@end
-
-
-/**
- * @note annotations
- *   kotlinx.serialization.Serializable
-*/
-__attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("HowToScanTooltipConfig")))
-@interface ATTSHowToScanTooltipConfig : ATTSBase
-- (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
-+ (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
-@property (class, readonly, getter=companion) ATTSHowToScanTooltipConfigCompanion *companion __attribute__((swift_name("companion")));
-@property NSString *text __attribute__((swift_name("text")));
-@property BOOL visible __attribute__((swift_name("visible")));
-@end
-
-__attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("HowToScanTooltipConfig.Companion")))
-@interface ATTSHowToScanTooltipConfigCompanion : ATTSBase
-+ (instancetype)alloc __attribute__((unavailable));
-+ (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
-+ (instancetype)companion __attribute__((swift_name("init()")));
-@property (class, readonly, getter=shared) ATTSHowToScanTooltipConfigCompanion *shared __attribute__((swift_name("shared")));
-- (id<ATTSKotlinx_serialization_coreKSerializer>)serializer __attribute__((swift_name("serializer()")));
-@end
-
-
-/**
- * @note annotations
- *   kotlinx.serialization.Serializable
-*/
-__attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("LineProgressBarConfig")))
-@interface ATTSLineProgressBarConfig : ATTSBase
-- (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
-+ (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
-@property (class, readonly, getter=companion) ATTSLineProgressBarConfigCompanion *companion __attribute__((swift_name("companion")));
-@property BOOL visible __attribute__((swift_name("visible")));
-@end
-
-__attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("LineProgressBarConfig.Companion")))
-@interface ATTSLineProgressBarConfigCompanion : ATTSBase
-+ (instancetype)alloc __attribute__((unavailable));
-+ (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
-+ (instancetype)companion __attribute__((swift_name("init()")));
-@property (class, readonly, getter=shared) ATTSLineProgressBarConfigCompanion *shared __attribute__((swift_name("shared")));
 - (id<ATTSKotlinx_serialization_coreKSerializer>)serializer __attribute__((swift_name("serializer()")));
 @end
 
@@ -909,21 +881,21 @@ __attribute__((swift_name("OrientationWarningConfig.Companion")))
  *   kotlinx.serialization.Serializable
 */
 __attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("ProgressTimerConfig")))
-@interface ATTSProgressTimerConfig : ATTSBase
+__attribute__((swift_name("ScanDirectionConfig")))
+@interface ATTSScanDirectionConfig : ATTSBase
 - (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
 + (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
-@property (class, readonly, getter=companion) ATTSProgressTimerConfigCompanion *companion __attribute__((swift_name("companion")));
+@property (class, readonly, getter=companion) ATTSScanDirectionConfigCompanion *companion __attribute__((swift_name("companion")));
 @property BOOL visible __attribute__((swift_name("visible")));
 @end
 
 __attribute__((objc_subclassing_restricted))
-__attribute__((swift_name("ProgressTimerConfig.Companion")))
-@interface ATTSProgressTimerConfigCompanion : ATTSBase
+__attribute__((swift_name("ScanDirectionConfig.Companion")))
+@interface ATTSScanDirectionConfigCompanion : ATTSBase
 + (instancetype)alloc __attribute__((unavailable));
 + (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
 + (instancetype)companion __attribute__((swift_name("init()")));
-@property (class, readonly, getter=shared) ATTSProgressTimerConfigCompanion *shared __attribute__((swift_name("shared")));
+@property (class, readonly, getter=shared) ATTSScanDirectionConfigCompanion *shared __attribute__((swift_name("shared")));
 - (id<ATTSKotlinx_serialization_coreKSerializer>)serializer __attribute__((swift_name("serializer()")));
 @end
 
@@ -938,7 +910,9 @@ __attribute__((swift_name("TapToStartScanningTooltipConfig")))
 - (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
 + (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
 @property (class, readonly, getter=companion) ATTSTapToStartScanningTooltipConfigCompanion *companion __attribute__((swift_name("companion")));
-@property NSString *text __attribute__((swift_name("text")));
+@property NSString *textNotOkImperial __attribute__((swift_name("textNotOkImperial")));
+@property NSString *textNotOkMetric __attribute__((swift_name("textNotOkMetric")));
+@property NSString *textOk __attribute__((swift_name("textOk")));
 @property BOOL visible __attribute__((swift_name("visible")));
 @end
 
@@ -982,6 +956,34 @@ __attribute__((swift_name("TireOverlayConfig.Companion")))
  *   kotlinx.serialization.Serializable
 */
 __attribute__((objc_subclassing_restricted))
+__attribute__((swift_name("TireWidthInputConfig")))
+@interface ATTSTireWidthInputConfig : ATTSBase
+- (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
++ (instancetype)new __attribute__((availability(swift, unavailable, message="use object initializers instead")));
+@property (class, readonly, getter=companion) ATTSTireWidthInputConfigCompanion *companion __attribute__((swift_name("companion")));
+@property NSString *continueButtonText __attribute__((swift_name("continueButtonText")));
+@property NSString *explanationText __attribute__((swift_name("explanationText")));
+@property NSString *skipButtonText __attribute__((swift_name("skipButtonText")));
+@property NSString *titleText __attribute__((swift_name("titleText")));
+@property BOOL visible __attribute__((swift_name("visible")));
+@end
+
+__attribute__((objc_subclassing_restricted))
+__attribute__((swift_name("TireWidthInputConfig.Companion")))
+@interface ATTSTireWidthInputConfigCompanion : ATTSBase
++ (instancetype)alloc __attribute__((unavailable));
++ (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
++ (instancetype)companion __attribute__((swift_name("init()")));
+@property (class, readonly, getter=shared) ATTSTireWidthInputConfigCompanion *shared __attribute__((swift_name("shared")));
+- (id<ATTSKotlinx_serialization_coreKSerializer>)serializer __attribute__((swift_name("serializer()")));
+@end
+
+
+/**
+ * @note annotations
+ *   kotlinx.serialization.Serializable
+*/
+__attribute__((objc_subclassing_restricted))
 __attribute__((swift_name("UploadViewConfig")))
 @interface ATTSUploadViewConfig : ATTSBase
 - (instancetype)init __attribute__((swift_name("init()"))) __attribute__((objc_designated_initializer));
@@ -1004,15 +1006,21 @@ __attribute__((swift_name("UploadViewConfig.Companion")))
 @interface ATTSAnylineTireTreadSdk (Extensions)
 - (void)abortScanMeasurementUuid:(NSString *)measurementUuid onResponse:(void (^)(ATTSResponse<ATTSMeasurementInfo *> *))onResponse __attribute__((swift_name("abortScan(measurementUuid:onResponse:)")));
 - (void)getHeatmapMeasurementUuid:(NSString *)measurementUuid timeoutSeconds:(int32_t)timeoutSeconds onResponse:(void (^)(ATTSResponse<ATTSHeatmap *> *))onResponse __attribute__((swift_name("getHeatmap(measurementUuid:timeoutSeconds:onResponse:)")));
-- (void)getTreadDepthReportPdfMeasurementUuid:(NSString *)measurementUuid onResponse:(void (^)(ATTSResponse<ATTSKotlinByteArray *> *))onResponse __attribute__((swift_name("getTreadDepthReportPdf(measurementUuid:onResponse:)")));
+- (void)getTreadDepthReportPdfMeasurementUuid:(NSString *)measurementUuid onResponse:(void (^)(ATTSResponse<ATTSKotlinByteArray *> *))onResponse __attribute__((swift_name("getTreadDepthReportPdf(measurementUuid:onResponse:)"))) __attribute__((deprecated("PDF reports are now deprecated and will be removed in the next versions.")));
 - (void)getTreadDepthReportResultMeasurementUuid:(NSString *)measurementUuid timeoutSeconds:(int32_t)timeoutSeconds onResponse:(void (^)(ATTSResponse<ATTSTreadDepthResult *> *))onResponse __attribute__((swift_name("getTreadDepthReportResult(measurementUuid:timeoutSeconds:onResponse:)")));
-- (void)getTreadDepthReportUrlStringMeasurementUuid:(NSString *)measurementUuid onResponse:(void (^)(ATTSResponse<NSString *> *))onResponse __attribute__((swift_name("getTreadDepthReportUrlString(measurementUuid:onResponse:)")));
+- (void)getTreadDepthReportUrlStringMeasurementUuid:(NSString *)measurementUuid onResponse:(void (^)(ATTSResponse<NSString *> *))onResponse __attribute__((swift_name("getTreadDepthReportUrlString(measurementUuid:onResponse:)"))) __attribute__((deprecated("PDF reports are now deprecated and will be removed in the next versions.")));
 
 /**
  * @note This method converts instances of SdkLicenseKeyInvalidException, SdkInitializeFailedException to errors.
  * Other uncaught Kotlin exceptions are fatal.
 */
 - (BOOL)doInitLicenseKey:(NSString *)licenseKey error:(NSError * _Nullable * _Nullable)error __attribute__((swift_name("doInit(licenseKey:)")));
+
+/**
+ * @note This method converts instances of SdkLicenseKeyInvalidException, SdkLicenseKeyForbiddenException, NoConnectionException, Exception to errors.
+ * Other uncaught Kotlin exceptions are fatal.
+*/
+- (BOOL)doInitLicenseKey:(NSString *)licenseKey customTag:(NSString * _Nullable)customTag error:(NSError * _Nullable * _Nullable)error __attribute__((swift_name("doInit(licenseKey:customTag:)")));
 - (void)sendCommentFeedbackUuid:(NSString *)uuid comment:(NSString *)comment onResponse:(void (^)(ATTSResponse<ATTSMeasurementInfo *> *))onResponse __attribute__((swift_name("sendCommentFeedback(uuid:comment:onResponse:)")));
 - (void)sendTireIdFeedbackMeasurementUuid:(NSString *)measurementUuid tireId:(NSString *)tireId onResponse:(void (^)(ATTSResponse<ATTSMeasurementInfo *> *))onResponse __attribute__((swift_name("sendTireIdFeedback(measurementUuid:tireId:onResponse:)")));
 - (void)sendTreadDepthResultFeedbackResultUuid:(NSString *)resultUuid treadResultRegions:(NSArray<ATTSTreadResultRegion *> *)treadResultRegions onResponse:(void (^)(ATTSResponse<ATTSMeasurementInfo *> *))onResponse __attribute__((swift_name("sendTreadDepthResultFeedback(resultUuid:treadResultRegions:onResponse:)")));

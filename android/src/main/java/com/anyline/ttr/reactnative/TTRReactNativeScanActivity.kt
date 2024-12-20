@@ -22,15 +22,24 @@ class TTRReactNativeScanActivity : AppCompatActivity(), TireTreadScanViewCallbac
     var ttrView = TireTreadScanView(this)
 
     var configJson = intent.getStringExtra("config")
+    var tireWidthInt = intent.getIntExtra("tireWidth", 0)
 
     val config = configJson?.let { Json.decodeFromString<TireTreadScanViewConfig>(it) }
 
+    if (config == null) {
+      TTRReactNativeCallbackManager.getCallback()?.onResultError("CONFIG_ABORT", "The Json could not be parsed successful")
+
+      finish()
+      return
+    }
+
     // Configure the TireTreadScanView
     ttrView.apply {
-      if (config != null) {
-        withScanConfig(config)
+      if (tireWidthInt != 0) {
+        init(config, tireWidthInt, this@TTRReactNativeScanActivity)
+      } else {
+        init(config, null, this@TTRReactNativeScanActivity)
       }
-      scanViewCallback = this@TTRReactNativeScanActivity
       setViewCompositionStrategy(
         ViewCompositionStrategy.DisposeOnLifecycleDestroyed(
           this@TTRReactNativeScanActivity
