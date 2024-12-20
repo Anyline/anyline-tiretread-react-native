@@ -27,7 +27,7 @@ export function startTireTreadScanActivity(config: string): Promise<string> {
 }
 
 export function isMinimumIOSVersionForTTR(): boolean {
-  if (Platform.OS !== 'ios') return false;
+  if (Platform.OS !== 'ios') return true;
   return parseFloat(Platform.Version) >= 16.4;
 }
 export function getTreadDepthReportResult(
