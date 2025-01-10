@@ -39,9 +39,11 @@ export function startTireTreadScanActivity(
   }
 }
 
-export function isMinimumIOSVersionForTTR(): boolean {
-  if (Platform.OS !== 'ios') return true;
-  return parseFloat(Platform.Version) >= 16.4;
+export function isDeviceSupported(): Promise<boolean> {
+  if (Platform.OS !== 'ios') {
+    return AnylineTtrMobileWrapperReactNative.isAndroidDeviceSupported();
+  }
+  return Promise.resolve(parseFloat(Platform.Version) >= 16.4);
 }
 export function getTreadDepthReportResult(
   measurementUuid: string
