@@ -13,6 +13,7 @@ import {
   initTireTread,
   startTireTreadScanActivity,
   getTreadDepthReportResult,
+  isDeviceSupported,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
 const portugeseConfig = JSON.stringify(
@@ -64,15 +65,34 @@ export default function App() {
     }
   }, [isProcessing, startWiggleAnimation, wiggleAnim]);
 
-  const handleInitPress = () => {
-    initTireTread('license_key')
-      .then((response) => {
-        setInitResult(response);
-        setError(undefined);
+  const handleInitPress = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      setError('Camera permission denied');
+      return;
+    }
+
+    isDeviceSupported()
+      .then((compatible) => {
+        if (compatible) {
+          initTireTread('22700466816818')
+            .then((response) => {
+              setInitResult(response);
+              setError(undefined);
+            })
+            .catch((e) => {
+              setError('Initialization failed: ' + e.message);
+              setInitResult(undefined);
+            });
+        } else {
+          setError(
+            'Minimum iOS version required is 16.4 or Android device is not supported'
+          );
+        }
       })
       .catch((e) => {
-        setError('Initialization failed: ' + e.message);
-        setInitResult(undefined);
+        setError('Device support check failed: ' + e.message);
+        return;
       });
   };
 
@@ -97,12 +117,7 @@ export default function App() {
       setError('Please initialize first');
       return;
     }
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      setError('Camera permission denied');
-      return;
-    }
-    startTireTreadScanActivity(config)
+    startTireTreadScanActivity(config, 215)
       .then((response) => {
         setScanResult(response);
         setError(undefined);

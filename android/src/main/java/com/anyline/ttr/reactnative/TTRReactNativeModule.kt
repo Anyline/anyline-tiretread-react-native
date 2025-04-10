@@ -1,5 +1,6 @@
 package com.anyline.ttr.reactnative
 
+import android.Manifest
 import android.content.Intent
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -13,7 +14,20 @@ import io.anyline.tiretread.sdk.getTreadDepthReportResult
 import io.anyline.tiretread.sdk.init
 import io.anyline.tiretread.sdk.types.TreadDepthResult
 import io.anyline.tiretread.sdk.types.toJson
-
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CaptureFailure
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.TotalCaptureResult
+import android.util.Log
+import android.view.Surface
 
 class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -21,6 +35,170 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   override fun getName(): String {
     return NAME
   }
+    private lateinit var surfaceTexture: SurfaceTexture
+    private lateinit var cameraManager: CameraManager
+    private lateinit var cameraDevice: CameraDevice
+    private lateinit var captureSession: CameraCaptureSession
+    private lateinit var captureRequestBuilder: CaptureRequest.Builder
+    private var captureCount = 0
+    private val maxCaptures = 30
+    private var isFocusDistanceSupported = false
+
+    @ReactMethod
+    fun isAndroidDeviceSupported(promise: Promise) {
+        val currentActivity = currentActivity ?: run {
+            promise.reject("NO_ACTIVITY", "Activity doesn't exist")
+            return
+        }
+
+        try {
+            // Check for camera permission first
+            if (currentActivity.checkSelfPermission(Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+                throw SecurityException("Camera permission must be granted before calling this method")
+            }
+
+            cameraManager = currentActivity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val cameraId = cameraManager.cameraIdList.find { id ->
+                val characteristics = cameraManager.getCameraCharacteristics(id)
+                val lensFacing = characteristics[CameraCharacteristics.LENS_FACING]
+                lensFacing == CameraCharacteristics.LENS_FACING_BACK
+            } ?: run {
+                promise.reject("NO_CAMERA", "No back camera found")
+                return
+            }
+
+            startCameraOperation(cameraId, promise)
+        } catch (e: SecurityException) {
+            promise.reject("PERMISSION_REQUIRED", "Camera permission is required", e)
+        } catch (e: CameraAccessException) {
+            promise.reject("CAMERA_ERROR", e.message, e)
+        }
+    }
+
+    private fun startCameraOperation(cameraId: String, promise: Promise) {
+        this.isFocusDistanceSupported = false
+        this.captureCount = 0
+
+        try {
+            cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    cameraDevice = camera
+                    createCaptureSession(promise)
+                }
+
+                override fun onDisconnected(camera: CameraDevice) {
+                    camera.close()
+                    promise.reject("CAMERA_ERROR", "Camera disconnected")
+                }
+
+                override fun onError(camera: CameraDevice, error: Int) {
+                    camera.close()
+                    promise.reject("CAMERA_ERROR", "Camera error: $error" )
+                }
+            }, null)
+        } catch (e: SecurityException) {
+            promise.reject("PERMISSION_REQUIRED", "Camera permission is required", e)
+        } catch (e: CameraAccessException) {
+            promise.reject("CAMERA_ERROR", e.message, e)
+        }
+    }
+
+    private fun createCaptureSession(promise: Promise) {
+        try {
+            surfaceTexture = SurfaceTexture(10)
+            val surface = Surface(surfaceTexture)
+            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+            captureRequestBuilder.addTarget(surface)
+
+            // Set auto-focus mode
+            captureRequestBuilder[CaptureRequest.CONTROL_AF_MODE] =
+                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+
+            // Set manual focus distance to test support
+            captureRequestBuilder[CaptureRequest.LENS_FOCUS_DISTANCE]?.let {
+            }
+
+            cameraDevice.createCaptureSession(
+                listOf(surface),
+                object : CameraCaptureSession.StateCallback() {
+                    override fun onConfigured(session: CameraCaptureSession) {
+                        captureSession = session
+                        try {
+                            captureSession.setRepeatingRequest(
+                                captureRequestBuilder.build(),
+                                createCaptureCallback(promise),
+                                null
+                            )
+                        } catch (e: CameraAccessException) {
+                            promise.reject("CAMERA_ERROR", "Failed to start capture session")
+                        }
+                    }
+
+                    override fun onConfigureFailed(session: CameraCaptureSession) {
+                        promise.reject("CAMERA_ERROR", "Failed to configure capture session")
+                    }
+                },
+                null
+            )
+        } catch (e: CameraAccessException) {
+            promise.reject("CAMERA_ERROR", e.message)
+        }
+    }
+
+    private fun createCaptureCallback(promise: Promise): CameraCaptureSession.CaptureCallback {
+        return object : CameraCaptureSession.CaptureCallback() {
+            override fun onCaptureCompleted(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                result: TotalCaptureResult
+            ) {
+                try {
+                    val focusDistance = result[CaptureResult.LENS_FOCUS_DISTANCE]
+                    if (focusDistance != null && focusDistance > 0) {
+                        isFocusDistanceSupported = true
+                    }
+                    captureCount++
+
+                    // Check if we should stop capturing
+                    if (isFocusDistanceSupported || captureCount >= maxCaptures) {
+                        try {
+                            captureSession.stopRepeating()
+                            captureSession.abortCaptures()
+                            cameraDevice.close()
+                            promise.resolve(isFocusDistanceSupported)
+                        } catch (e: CameraAccessException) {
+                            promise.resolve(isFocusDistanceSupported)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("FocusDistance", "Error in capture callback", e)
+                    try {
+                        captureSession.stopRepeating()
+                        captureSession.abortCaptures()
+                        cameraDevice.close()
+                    } catch (closeError: Exception) {
+                        Log.e("FocusDistance", "Error closing camera after error", closeError)
+                    }
+                    promise.reject("CAMERA_ERROR", "Error in Camera capture callback")
+                }
+            }
+
+            override fun onCaptureFailed(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                failure: CaptureFailure
+            ) {
+                try {
+                    session.stopRepeating()
+                    session.abortCaptures()
+                    cameraDevice.close()
+                } catch (e: CameraAccessException) {
+                }
+                promise.reject("CAMERA_ERROR", "Camera capture failed")
+            }
+        }
+    }
 
   @ReactMethod
   fun initTireTread(licenseKey: String, promise: Promise) {
@@ -44,7 +222,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun startTireTreadScanActivity(config: String, promise: Promise) {
+  fun startTireTreadScanActivity(config: String, tireWidth: Integer, promise: Promise) {
     val currentActivity = currentActivity
     if (currentActivity != null) {
 
@@ -62,6 +240,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
       val intent = Intent(currentActivity, TTRReactNativeScanActivity::class.java)
       intent.putExtra("config", config)
+      intent.putExtra("tireWidth", tireWidth)
       currentActivity.startActivity(intent)
     }
   }

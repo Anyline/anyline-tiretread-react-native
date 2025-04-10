@@ -16,8 +16,8 @@ class AnylineTtrMobileWrapperReactNative: NSObject {
         }
     }
     
-    @objc(startTireTreadScanActivity:withResolver:withRejecter:)
-    func startTireTreadScanActivity(config: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    @objc(startTireTreadScanActivity:tireWidth:withResolver:withRejecter:)
+    func startTireTreadScanActivity(config: String, tireWidth:Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.main.sync {
             guard let currentViewController = RCTPresentedViewController() else {
                 reject("1005", "Activity does not exist", nil)

@@ -22,10 +22,29 @@ export function initTireTread(licenseKey: string): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.initTireTread(licenseKey);
 }
 
-export function startTireTreadScanActivity(config: string): Promise<string> {
-  return AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(config);
+export function startTireTreadScanActivity(
+  config: string,
+  tireWidth?: number
+): Promise<string> {
+  if (tireWidth !== undefined) {
+    return AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(
+      config,
+      tireWidth
+    );
+  } else {
+    return AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(
+      config,
+      0
+    );
+  }
 }
 
+export function isDeviceSupported(): Promise<boolean> {
+  if (Platform.OS !== 'ios') {
+    return AnylineTtrMobileWrapperReactNative.isAndroidDeviceSupported();
+  }
+  return Promise.resolve(parseFloat(Platform.Version) >= 16.4);
+}
 export function getTreadDepthReportResult(
   measurementUuid: string
 ): Promise<string> {
