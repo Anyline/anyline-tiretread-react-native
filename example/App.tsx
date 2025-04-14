@@ -1,4 +1,12 @@
-import * as React from 'react';
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ */
+
+import React from 'react';
+import type {PropsWithChildren} from 'react';
 import {
   StyleSheet,
   View,
@@ -75,7 +83,7 @@ export default function App() {
     isDeviceSupported()
       .then((compatible) => {
         if (compatible) {
-          initTireTread('22700466816818')
+          initTireTread('ENTER_LICENSE')
             .then((response) => {
               setInitResult(response);
               setError(undefined);
@@ -235,3 +243,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
+
+export default App;

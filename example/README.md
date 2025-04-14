@@ -1,247 +1,97 @@
-# Anyline TTR Mobile Wrapper React Native Plugin
+This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-The Anyline TTR Mobile Wrapper for React Native enables integration with the Anyline Tire Tread Recognition (TTR) functionality, allowing for tire tread scanning and depth report generation in your React Native applications.
+# Getting Started
 
-## File Summary
-- **example**: Example app source code demonstrating plugin integration.
-- **README.md**: This readme file.
-- **LICENSE.md**: The license file.
+> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
-## License
-See the [LICENSE.md](./LICENSE.md) file for licensing information.
+## Step 1: Start Metro
 
-## Getting Started
-If you want to quickly integrate and start using the Anyline TTR Mobile Wrapper in your React Native project, follow these steps. 
+First, you will need to run **Metro**, the JavaScript build tool for React Native.
 
-### Requirements
-#### Android
-- Android SDK Level >= 26
-- A device with a decent camera (recommended: 720p resolution with good autofocus)
-
-#### iOS
-- Minimum OS version: 16.4
-- Disable bitcode in your project if enabled.
-- Add Camera Permissions to `Info.plist`.
-
-### Installation
-To add the plugin you have to download or clone this repository and add the plugin source to your project using yarn or npm:
+To start the Metro dev server, run the following command from the root of your React Native project:
 
 ```sh
-$ yarn add $(path_to_anyline-ttr-mobile-wrapper-react-native)
+# Using npm
+npm start
+
+# OR using Yarn
+yarn start
 ```
 
-## Linking
-Ensure the package is linked correctly. If you face linking issues, ensure you have run `pod install` (for iOS) and rebuilt your app after installation.
+## Step 2: Build and run your app
 
-## Example
-Please have a look at the working example in the repository. It provides you with sample code for the full integration.
+With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
 
-## Importing the Plugin
-Import the required functions from the plugin in your React Native project:
+### Android
 
-```javascript
-import {
-  initTireTread,
-  startTireTreadScanActivity,
-  getTreadDepthReportResult,
-} from 'anyline-ttr-mobile-wrapper-react-native';
+```sh
+# Using npm
+npm run android
+
+# OR using Yarn
+yarn android
 ```
 
-## Initialization
-Initialize the Anyline TTR SDK by calling the `initTireTread` method with your license key:
+### iOS
 
-```javascript
-initTireTread('your_license_key')
-  .then((response) => {
-    console.log('Initialization successful:', response);
-  })
-  .catch((error) => {
-    console.error('Initialization failed:', error);
-  });
+For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+
+The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+
+```sh
+bundle install
 ```
 
-## startTireTreadScanActivity
-Starts the tire tread scanning activity with the provided configuration. If you use an empty config string the default configuration will be loaded.
+Then, and every time you update your native dependencies, run:
 
-```javascript
-startTireTreadScanActivity(config)
-  .then((response) => {
-    console.log('Scanning successful:', response);
-  })
-  .catch((error) => {
-    console.error('Scanning failed:', error);
-  });
+```sh
+bundle exec pod install
 ```
-**Parameters:**
 
-- `config` (string): The JSON configuration for the scanning activity.
+For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
 
-**Returns:**
+```sh
+# Using npm
+npm run ios
 
-- Promise<string>: A promise that resolves to the scanning result.
-
-## getTreadDepthReportResult
-Gets the tread depth report result for the given measurement UUID as an json result.
-
-
-```javascript
-Copy code
-getTreadDepthReportResult(measurementUuid)
-  .then((response) => {
-    console.log('Report retrieval successful:', response);
-  })
-  .catch((error) => {
-    console.error('Getting report failed:', error);
-  });
+# OR using Yarn
+yarn ios
 ```
-**Parameters:**
 
-- `measurementUuid` (string): The UUID of the measurement.
+If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
 
-**Returns:**
+This is one way to run your app — you can also build it directly from Android Studio or Xcode.
 
-- Promise<string>: A promise that resolves to the report result as json.
+## Step 3: Modify your app
 
-## Result JSON Structure
-The result string from `getTreadDepthReportResult` is a JSON string containing the tire tread depth results. Below is a sample JSON structure and an explanation of each field.
+Now that you have successfully run the app, let's make changes!
 
-### Sample JSON Result
-```json
-{
-  "global": {
-    "available": true,
-    "value_mm": 6.0,
-    "value_inch": 0.236,
-    "value_inch_32nds": 7
-  },
-  "regions": [
-    {
-      "available": true,
-      "value_mm": 7.5,
-      "value_inch": 0.295,
-      "value_inch_32nds": 9
-    },
-    {
-      "available": true,
-      "value_mm": 6.5,
-      "value_inch": 0.256,
-      "value_inch_32nds": 8
-    },
-    {
-      "available": true,
-      "value_mm": 6.5,
-      "value_inch": 0.256,
-      "value_inch_32nds": 8
-    }
-  ],
-  "measurementInfo": {
-    "measurementUuid": "123e4567-e89b-12d3-a456-426614174000",
-    "status": "completed",
-    "additionalContext": null
-  }
-}
-```
-## JSON Fields Description
-- `global` (object): The global tread depth result.
-  - `available` (boolean): Indicates if the global result is available.
-  - `value_mm` (double): The tread depth value in millimeters.
-  - `value_inch` (double): The tread depth value in inches.
-  - `value_inch_32nds` (int): The tread depth value in inches (32nds).
+Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
 
-- `regions` (array of objects): The tread depth results for 3 different regions of the tire.
-  - Each region object contains:
-    - `available` (boolean): Indicates if the region result is available.
-    - `value_mm` (double): The tread depth value in millimeters.
-    - `value_inch` (double): The tread depth value in inches.
-    - `value_inch_32nds` (int): The tread depth value in inches (32nds).
+When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
 
-- `measurementInfo` (object): Information about the measurement.
-  - `measurementUuid` (string): The UUID identifying the measurement.
-  - `status` (string): The status of the measurement. Possible values:
-    - `unknown`
-    - `waiting_for_images`
-    - `processing`
-    - `result_ready`
-    - `result_and_report_ready`
-    - `completed`
-    - `aborted`
-    - `failed`
-  - `additionalContext` (object|null): Additional context about the measurement (if any).
+- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
+- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
 
-## Configuration
-The Anyline TTR Mobile Wrapper uses a JSON configuration to define the behavior and appearance of the tire tread scanning activity. Below is a sample configuration and an explanation of each parameter. This is just an sample to showcase the functionality. Anyline does not provide any localisations.
+## Congratulations! :tada:
 
-### Sample Configuration
-```json
-{
-  "useDefaultUi": true,
-  "useDefaultHaptic": true,
-  "defaultUiConfig": {
-    "distanceIndicatorConfig": {
-      "visible": true,
-      "textOk": "Mantenha a distância.",
-      "textMoveCloser": "Chegue mais perto.",
-      "textMoveAway": "Aumente a distância."
-    },
-    "focusPointTooltipConfig": {
-      "visible": true,
-      "text": "Mova o dispositivo para frente e para trás para detectar o pneu."
-    },
-    "howToScanTooltipConfig": {
-      "visible": true,
-      "text": "Alinhe o pneu com a máscara."
-    },
-    "tapToStartScanningTooltipConfig": {
-      "visible": true,
-      "text": "Toque na tela para iniciar o processo."
-    },
-    "tireOverlayConfig": {
-      "visible": true
-    },
-    "uploadViewConfig": {
-      "visible": true,
-      "text": "Enviando imagens, aguarde."
-    },
-    "progressTimerConfig": {
-      "visible": true
-    },
-    "lineProgressBarConfig": {
-      "visible": true
-    }
-  },
-  "scanSpeed": "Fast",
-  "measurementSystem": "Metric"
-}
-```
-### Configuration Parameters
-- `useDefaultUi` (boolean): Enables or disables the default user interface.
-- `useDefaultHaptic` (boolean): Enables or disables haptic feedback.
-- `defaultUiConfig` (object): Configuration for the default UI components.
-  - `distanceIndicatorConfig` (object): Configuration for the distance indicator.
-    - `visible` (boolean): Determines if the distance indicator is visible.
-    - `textOk` (string): Text displayed when the distance is correct.
-    - `textMoveCloser` (string): Text displayed when the device needs to be moved closer.
-    - `textMoveAway` (string): Text displayed when the device needs to be moved away.
-  - `focusPointTooltipConfig` (object): Configuration for the focus point tooltip.
-    - `visible` (boolean): Determines if the focus point tooltip is visible.
-    - `text` (string): Text displayed in the focus point tooltip.
-  - `howToScanTooltipConfig` (object): Configuration for the how-to-scan tooltip.
-    - `visible` (boolean): Determines if the how-to-scan tooltip is visible.
-    - `text` (string): Text displayed in the how-to-scan tooltip.
-  - `tapToStartScanningTooltipConfig` (object): Configuration for the tap-to-start scanning tooltip.
-    - `visible` (boolean): Determines if the tap-to-start scanning tooltip is visible.
-    - `text` (string): Text displayed in the tap-to-start scanning tooltip.
-  - `tireOverlayConfig` (object): Configuration for the tire overlay.
-    - `visible` (boolean): Determines if the tire overlay is visible.
-  - `uploadViewConfig` (object): Configuration for the upload view.
-    - `visible` (boolean): Determines if the upload view is visible.
-    - `text` (string): Text displayed in the upload view.
-  - `progressTimerConfig` (object): Configuration for the progress timer.
-    - `visible` (boolean): Determines if the progress timer is visible.
-  - `lineProgressBarConfig` (object): Configuration for the line progress bar.
-    - `visible` (boolean): Determines if the line progress bar is visible.
-- `scanSpeed` (string): Sets the scanning speed. Possible values: `Fast`, `Slow`.
-- `measurementSystem` (string): Sets the measurement system. Possible values: `Metric`, `Imperial`.
+You've successfully run and modified your React Native App. :partying_face:
 
-## Get Help (Support)
-For any issues or questions, please open a support request using the [Anyline Helpdesk](https://support.anyline.com). We don't actively monitor issues raised on GitHub.
+### Now what?
+
+- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
+- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+
+# Troubleshooting
+
+If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+
+# Learn More
+
+To learn more about React Native, take a look at the following resources:
+
+- [React Native Website](https://reactnative.dev) - learn more about React Native.
+- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
+- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
+- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
+- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
