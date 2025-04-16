@@ -44,7 +44,7 @@
     "url": "git+https://gitlab.com/anylinecom/ttr/mobile/wrappers/anyline-ttr-mobile-wrapper-react-native.git"
   },
   "author": "Anyline GmbH <<daniel.albertini@anyline.com>> (https://anyline.com)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://gitlab.com/anylinecom/ttr/mobile/wrappers/anyline-ttr-mobile-wrapper-react-native/issues"
   },
@@ -77,8 +77,8 @@
     "@types/react": "^18.2.44"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=18.2.0",
+    "react-native": ">=0.73.6"
   },
   "workspaces": [
     "example"

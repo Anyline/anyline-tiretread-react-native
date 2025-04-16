@@ -1,0 +1,35 @@
+# Node
+node_modules/
+yarn.lock
+package-lock.json
+*.log
+
+# Build Artifacts
+lib/
+example/android/build/
+example/android/app/build/
+example/ios/build/
+example/ios/Pods/
+example/ios/DerivedData/
+anyline-tiretread-react-native/android/build/
+anyline-tiretread-react-native/ios/build/
+anyline-tiretread-react-native/ios/Pods/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Xcode User Settings
+xcuserdata/
+*.xcscheme
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+
+# Environment variables
+.env*
+!.env.example
+.xcode.env.local
