@@ -8,8 +8,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import io.anyline.tiretread.sdk.AnylineTireTreadSdk
 import io.anyline.tiretread.sdk.Response
-import io.anyline.tiretread.sdk.SdkInitializeFailedException
-import io.anyline.tiretread.sdk.SdkLicenseKeyInvalidException
 import io.anyline.tiretread.sdk.getTreadDepthReportResult
 import io.anyline.tiretread.sdk.init
 import io.anyline.tiretread.sdk.types.TreadDepthResult
@@ -28,6 +26,9 @@ import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.util.Log
 import android.view.Surface
+import io.anyline.tiretread.sdk.NoConnectionException
+import io.anyline.tiretread.sdk.SdkLicenseKeyForbiddenException
+import io.anyline.tiretread.sdk.SdkLicenseKeyInvalidException
 
 class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -214,9 +215,13 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
           promise.reject("E_ACTIVITY_DOES_NOT_EXIST", "Activity does not exist")
         }
       } catch (e: SdkLicenseKeyInvalidException) {
-        promise.reject("E_LICENSE_KEY_INVALID", e.localizedMessage)
-      } catch (e: SdkInitializeFailedException) {
-        promise.reject("E_INITIALIZATION_FAILED", e.localizedMessage)
+        promise.reject("E_LICENSE_KEY_INVALID", e.message)
+      } catch (e: Exception) {
+        promise.reject("E_INITIALIZATION_FAILED", e.message)
+      } catch (e: SdkLicenseKeyForbiddenException) {
+          promise.reject("E_LICENSE_KEY_INVALID", e.message)
+      } catch (e: NoConnectionException) {
+          promise.reject("E_INITIALIZATION_FAILED", e.message)
       }
     }.start()
   }
