@@ -16,17 +16,14 @@ import {
   isDeviceSupported,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
-const portugeseConfig = JSON.stringify(
-  require('./assets/config/sample_config_portugese.json')
-);
 const defaultConfig = JSON.stringify(
   require('./assets/config/sample_config_default.json')
 );
 const defaultImperialConfig = JSON.stringify(
   require('./assets/config/sample_config_default_imperial.json')
 );
-const noUXConfig = JSON.stringify(
-  require('./assets/config/sample_config_no_ux.json')
+const noTireWidthConfig = JSON.stringify(
+  require('./assets/config/sample_config_no_tire_width.json')
 );
 
 export default function App() {
@@ -117,7 +114,7 @@ export default function App() {
       setError('Please initialize first');
       return;
     }
-    startTireTreadScanActivity(config, 215)
+    startTireTreadScanActivity(config)
       .then((response) => {
         setScanResult(response);
         setError(undefined);
@@ -174,15 +171,8 @@ export default function App() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Scan Tire Tread No UX"
-          onPress={() => handleScanPress(noUXConfig)}
-          disabled={!initResult}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Scan Tire Tread Portugese UX"
-          onPress={() => handleScanPress(portugeseConfig)}
+          title="Scan Tire Tread No Tire Width"
+          onPress={() => handleScanPress(noTireWidthConfig)}
           disabled={!initResult}
         />
       </View>
