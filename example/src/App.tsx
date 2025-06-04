@@ -75,7 +75,7 @@ export default function App() {
     isDeviceSupported()
       .then((compatible) => {
         if (compatible) {
-          initTireTread('22700466816818')
+          initTireTread('LICENSE_KEY')
             .then((response) => {
               setInitResult(response);
               setError(undefined);

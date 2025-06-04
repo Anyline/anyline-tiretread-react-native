@@ -1,4 +1,4 @@
-framework module AnylineTireTreadSdk {
+framework module "AnylineTireTreadSdk" {
     umbrella header "AnylineTireTreadSdk.h"
 
     export *
