@@ -85,6 +85,7 @@ startTireTreadScanActivity(config)
 **Parameters:**
 
 - `config` (string): The JSON configuration for the scanning activity.
+- `tireWidth` (number): Optional TireWidth for more accurate scanning on Android
 
 **Returns:**
 
