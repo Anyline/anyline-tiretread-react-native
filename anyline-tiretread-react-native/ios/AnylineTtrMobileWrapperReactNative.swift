@@ -42,20 +42,50 @@ class AnylineTtrMobileWrapperReactNative: NSObject {
       
     @objc(getTreadDepthReportResult:withResolver:withRejecter:)
     func getTreadDepthReportResult(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .background).async {
+            do {
+            try AnylineTireTreadSdk.shared.getTreadDepthReportResult(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
+                guard let self = self else { return }
+
+                switch(response) {
+                    case let response as ResponseSuccess<TreadDepthResult>:
+                        resolve(response.data.toJson())
+                        break;
+                    case let response as ResponseError<TreadDepthResult>:
+                        reject(response.errorCode, response.errorMessage, nil)
+                        break;
+                    case let response as ResponseException<TreadDepthResult>:
+                        reject(nil, response.exception.description(), nil)
+                        break;
+                    default:
+                        // This state cannot be reached
+                        break;
+                }
+            })
+            } catch let error as NSError {
+                reject(String(error.code), error.localizedDescription, error)
+            }
+        }
+    }
+    
+    @objc(getHeatMap:withResolver:withRejecter:)
+    func getHeatMap(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
     
         do {
-          try AnylineTireTreadSdk.shared.getTreadDepthReportResult(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
+          try AnylineTireTreadSdk.shared.getHeatmap(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
               guard let self = self else { return }
 
               switch(response) {
-                  case let response as ResponseSuccess<TreadDepthResult>:
-                      resolve(response.data.toJson())
+                  case let response as ResponseSuccess<Heatmap>:
+                      resolve(response.data.url)
                       break;
-                  case let response as ResponseError<TreadDepthResult>:
-                      reject(response.errorCode, response.errorMessage, nil)
+                  case let response as ResponseError<Heatmap>:
+                      let message = response.errorMessage ?? "Unknown error"
+                      reject(response.errorCode, message, nil)
                       break;
-                  case let response as ResponseException<TreadDepthResult>:
-                      reject(nil, response.exception.description(), nil)
+                  case let response as ResponseException<Heatmap>:
+                      let exceptionMessage = "Unable to get heatmap result: " + (response.exception.message ?? "Unknown exception")
+                      reject("EXCEPTION", exceptionMessage, nil)
                       break;
                   default:
                       // This state cannot be reached

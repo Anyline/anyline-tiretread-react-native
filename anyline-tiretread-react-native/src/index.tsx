@@ -18,11 +18,11 @@ const AnylineTtrMobileWrapperReactNative =
         }
       );
 
-export function initTireTread(licenseKey: string): Promise<string> {
+export function initialize(licenseKey: string): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.initTireTread(licenseKey);
 }
 
-export function startTireTreadScanActivity(
+export function scan(
   config: string,
   tireWidth?: number
 ): Promise<string> {
@@ -45,7 +45,7 @@ export function isDeviceSupported(): Promise<boolean> {
   }
   return Promise.resolve(parseFloat(Platform.Version) >= 16.4);
 }
-export function getTreadDepthReportResult(
+export function getResult(
   measurementUuid: string
 ): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.getTreadDepthReportResult(

@@ -16,25 +16,20 @@ import {
   Platform,
   Animated,
   Easing,
+  Image,
 } from 'react-native';
 import {
-  initTireTread,
-  startTireTreadScanActivity,
-  getTreadDepthReportResult,
+  initialize,
+  scan,
+  getResult,
   isDeviceSupported,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
-const portugeseConfig = JSON.stringify(
-  require('./assets/config/sample_config_portugese.json')
-);
 const defaultConfig = JSON.stringify(
   require('./assets/config/sample_config_default.json')
 );
 const defaultImperialConfig = JSON.stringify(
   require('./assets/config/sample_config_default_imperial.json')
-);
-const noUXConfig = JSON.stringify(
-  require('./assets/config/sample_config_no_ux.json')
 );
 
 export default function App() {
@@ -125,7 +120,7 @@ export default function App() {
       setError('Please initialize first');
       return;
     }
-    startTireTreadScanActivity(config, 215)
+    scan(config)
       .then((response) => {
         setScanResult(response);
         setError(undefined);
@@ -142,7 +137,7 @@ export default function App() {
       return;
     }
     setIsProcessing(true);
-    getTreadDepthReportResult(scanResult)
+    getResult(scanResult)
       .then((response) => {
         setReportResult(response);
         setError(undefined);
@@ -155,6 +150,7 @@ export default function App() {
         setIsProcessing(false);
       });
   };
+
 
   const wiggleInterpolate = wiggleAnim.interpolate({
     inputRange: [-1, 1],
@@ -182,16 +178,9 @@ export default function App() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Scan Tire Tread No UX"
-          onPress={() => handleScanPress(noUXConfig)}
-          disabled={!initResult}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Scan Tire Tread Portugese UX"
-          onPress={() => handleScanPress(portugeseConfig)}
-          disabled={!initResult}
+          title="Get Report"
+          onPress={handleReportPress}
+          disabled={!scanResult}
         />
       </View>
       <View style={styles.buttonContainer}>
@@ -245,4 +234,3 @@ const styles = StyleSheet.create({
 });
 
 
-export default App;

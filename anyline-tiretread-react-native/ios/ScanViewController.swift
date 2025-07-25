@@ -11,7 +11,7 @@ import CoreHaptics
 import MediaPlayer
 import AnylineTireTreadSdk
 
-class ScanViewController: UIViewController, ScannerViewControllerHolder {
+class ScanViewController: UIViewController {
 
     // MARK: - Private Var's & Let's
     private var volumeButtonObserver: VolumeButtonObserver?
@@ -69,16 +69,17 @@ private extension ScanViewController {
 
     private func setupTireTreadScanView() {
         
-        // creates a TireTreadScannerViewController. You can later refer to it here
-        // as self.scannerViewController.
-        TireTreadScanViewKt.TireTreadScanView(context: UIViewController(), config: config!, callback: self) { [weak self] error in
-            if let onResultError = self?.onResultError {
-                onResultError(error as! NSError)
-            }
-            
-            print("Initialization failed: \(error)")
-            self?.dismiss(animated: true)
-        }
+        self.scannerViewController = TireTreadScanViewKt.TireTreadScanView(
+                        config: config!,
+                        onScanAborted: onScanAborted,
+                        onScanProcessCompleted: onUploadCompleted,
+                        callback: handleScanEvent
+                    ) { measurementUUID, error in
+                        self.onResultError!(error as! NSError)
+                        
+                        print("Initialization failed: \(error)")
+                        self.dismiss(animated: true)
+                    }
 
         self.dismissViewController = { [weak self] in
             self?.dismiss(animated: true)
@@ -143,14 +144,20 @@ private extension ScanViewController {
         }
     }
 
-}
-
-extension ScanViewController: TireTreadScanViewCallback {
+    private func handleScanEvent(event: ScanEvent) {
+        switch(event) {
+                
+            case let event as OnImageUploaded:
+                print("onImageUploaded: \(event.total) images uploaded in total")
+                break
+                
+            default:
+                print("ScanEvent: \(event.description)")
+                break
+            }
+    }
     
-    // We're using the SDK's defaultUi, so we only really need to implement the behavior
-    // for the "onScanAbort", "onUploadCompleted", "onUploadAborted", and "onUploadFailed" callbacks
-
-    func onScanAbort(uuid: String?) {
+    func onScanAborted(uuid: String?) {
         if let onResultError = self.onResultError {
             onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Scan was aborted by the user."]))
         }
