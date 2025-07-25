@@ -22,6 +22,7 @@ import {
   initialize,
   scan,
   getResult,
+  getHeatMap,
   isDeviceSupported,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
@@ -36,6 +37,7 @@ export default function App() {
   const [initResult, setInitResult] = React.useState<string | undefined>();
   const [scanResult, setScanResult] = React.useState<string | undefined>();
   const [reportResult, setReportResult] = React.useState<string | undefined>();
+  const [heatmapUrl, setHeatmapUrl] = React.useState<string | undefined>();
   const [error, setError] = React.useState<string | undefined>();
   const [isProcessing, setIsProcessing] = React.useState<boolean>(false);
   const wiggleAnim = React.useRef(new Animated.Value(0)).current;
@@ -78,7 +80,7 @@ export default function App() {
     isDeviceSupported()
       .then((compatible) => {
         if (compatible) {
-          initTireTread('ENTER_LICENSE')
+          initialize('22700466816818')
             .then((response) => {
               setInitResult(response);
               setError(undefined);
@@ -151,6 +153,25 @@ export default function App() {
       });
   };
 
+  const handleHeatmapPress = () => {
+    if (!scanResult) {
+      setError('Please scan first');
+      return;
+    }
+    setIsProcessing(true);
+    getHeatMap(scanResult)
+      .then((response) => {
+        setHeatmapUrl(response);
+        setError(undefined);
+      })
+      .catch((e) => {
+        setError('Getting heatmap failed: ' + e.message);
+        setHeatmapUrl(undefined);
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
+  };
 
   const wiggleInterpolate = wiggleAnim.interpolate({
     inputRange: [-1, 1],
@@ -185,8 +206,8 @@ export default function App() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Get Report"
-          onPress={handleReportPress}
+          title="Get Heatmap"
+          onPress={handleHeatmapPress}
           disabled={!scanResult}
         />
       </View>
@@ -205,6 +226,16 @@ export default function App() {
       <Text style={styles.text}>{`MeasurementUuid: ${scanResult}`}</Text>
       <Text style={styles.text}>{`Scan Result: ${reportResult}`}</Text>
       {error && <Text style={styles.errorText}>{error}</Text>}
+      {heatmapUrl && (
+        <View style={styles.heatmapContainer}>
+          <Text style={styles.heatmapTitle}>Heatmap:</Text>
+          <Image
+            source={{ uri: heatmapUrl }}
+            style={styles.heatmapImage}
+            resizeMode="contain"
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -230,6 +261,23 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     marginTop: 20,
+  },
+  heatmapContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  heatmapTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'blue',
+  },
+  heatmapImage: {
+    width: 300,
+    height: 200,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
   },
 });
 

@@ -52,3 +52,10 @@ export function getResult(
     measurementUuid
   );
 }
+export function getHeatMap(
+  measurementUuid: string
+): Promise<string> {
+  return AnylineTtrMobileWrapperReactNative.getHeatMap(
+    measurementUuid
+  );
+}
