@@ -67,5 +67,14 @@ class AnylineTtrMobileWrapperReactNative: NSObject {
             }
         }
     }
+    
+    @objc(isDeviceSupported:withRejecter:)
+    func isDeviceSupported(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 16.4, *) {
+            resolve(true)
+        } else {
+            resolve(false)
+        }
+    }
       
 }

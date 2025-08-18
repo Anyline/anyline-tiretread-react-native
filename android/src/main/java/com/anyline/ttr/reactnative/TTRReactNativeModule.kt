@@ -46,7 +46,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
     private var isFocusDistanceSupported = false
 
     @ReactMethod
-    fun isAndroidDeviceSupported(promise: Promise) {
+    fun isDeviceSupported(promise: Promise) {
         val currentActivity = currentActivity ?: run {
             promise.reject("NO_ACTIVITY", "Activity doesn't exist")
             return
