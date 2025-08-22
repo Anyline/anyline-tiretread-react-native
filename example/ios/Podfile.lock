@@ -1,6 +1,6 @@
 PODS:
   - anyline-ttr-mobile-wrapper-react-native (1.0.0):
-    - AnylineTireTreadSdk (~> 10.0)
+    - AnylineTireTreadSdk (~> 13.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -24,7 +24,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - AnylineTireTreadSdk (10.0.0)
+  - AnylineTireTreadSdk (13.0.2)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
@@ -1909,8 +1909,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  anyline-ttr-mobile-wrapper-react-native: c191b758fa7f35868bdb6fc79e97f5339e21a7df
-  AnylineTireTreadSdk: c55d27ce94d85da725cc4d3fd2d8f4e267fd6bbc
+  anyline-ttr-mobile-wrapper-react-native: bf1b6abd7773bb9aac42655bb8e9d75ac10860da
+  AnylineTireTreadSdk: eec126d7e5cdc09247720b585cc92ff9732d3b28
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6

@@ -15,6 +15,10 @@ RCT_EXTERN_METHOD(getTreadDepthReportResult:(NSString)measurementUuid
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(getHeatMap:(NSString)measurementUuid
+                 withResolver:(RCTPromiseResolveBlock)resolve
+                 withRejecter:(RCTPromiseRejectBlock)reject)
+
 + (BOOL)requiresMainQueueSetup
 {
   return NO;

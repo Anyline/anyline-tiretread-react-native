@@ -16,31 +16,28 @@ import {
   Platform,
   Animated,
   Easing,
+  Image,
 } from 'react-native';
 import {
-  initTireTread,
-  startTireTreadScanActivity,
-  getTreadDepthReportResult,
+  initialize,
+  scan,
+  getResult,
+  getHeatMap,
   isDeviceSupported,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
-const portugeseConfig = JSON.stringify(
-  require('./assets/config/sample_config_portugese.json')
-);
 const defaultConfig = JSON.stringify(
   require('./assets/config/sample_config_default.json')
 );
 const defaultImperialConfig = JSON.stringify(
   require('./assets/config/sample_config_default_imperial.json')
 );
-const noUXConfig = JSON.stringify(
-  require('./assets/config/sample_config_no_ux.json')
-);
 
 export default function App() {
   const [initResult, setInitResult] = React.useState<string | undefined>();
   const [scanResult, setScanResult] = React.useState<string | undefined>();
   const [reportResult, setReportResult] = React.useState<string | undefined>();
+  const [heatmapUrl, setHeatmapUrl] = React.useState<string | undefined>();
   const [error, setError] = React.useState<string | undefined>();
   const [isProcessing, setIsProcessing] = React.useState<boolean>(false);
   const wiggleAnim = React.useRef(new Animated.Value(0)).current;
@@ -83,7 +80,7 @@ export default function App() {
     isDeviceSupported()
       .then((compatible) => {
         if (compatible) {
-          initTireTread('ENTER_LICENSE')
+          initialize('22700466816818')
             .then((response) => {
               setInitResult(response);
               setError(undefined);
@@ -125,7 +122,7 @@ export default function App() {
       setError('Please initialize first');
       return;
     }
-    startTireTreadScanActivity(config, 215)
+    scan(config)
       .then((response) => {
         setScanResult(response);
         setError(undefined);
@@ -142,7 +139,7 @@ export default function App() {
       return;
     }
     setIsProcessing(true);
-    getTreadDepthReportResult(scanResult)
+    getResult(scanResult)
       .then((response) => {
         setReportResult(response);
         setError(undefined);
@@ -150,6 +147,26 @@ export default function App() {
       .catch((e) => {
         setError('Getting report failed: ' + e.message);
         setReportResult(undefined);
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
+  };
+
+  const handleHeatmapPress = () => {
+    if (!scanResult) {
+      setError('Please scan first');
+      return;
+    }
+    setIsProcessing(true);
+    getHeatMap(scanResult)
+      .then((response) => {
+        setHeatmapUrl(response);
+        setError(undefined);
+      })
+      .catch((e) => {
+        setError('Getting heatmap failed: ' + e.message);
+        setHeatmapUrl(undefined);
       })
       .finally(() => {
         setIsProcessing(false);
@@ -182,22 +199,15 @@ export default function App() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Scan Tire Tread No UX"
-          onPress={() => handleScanPress(noUXConfig)}
-          disabled={!initResult}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Scan Tire Tread Portugese UX"
-          onPress={() => handleScanPress(portugeseConfig)}
-          disabled={!initResult}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
           title="Get Report"
           onPress={handleReportPress}
+          disabled={!scanResult}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Get Heatmap"
+          onPress={handleHeatmapPress}
           disabled={!scanResult}
         />
       </View>
@@ -216,6 +226,16 @@ export default function App() {
       <Text style={styles.text}>{`MeasurementUuid: ${scanResult}`}</Text>
       <Text style={styles.text}>{`Scan Result: ${reportResult}`}</Text>
       {error && <Text style={styles.errorText}>{error}</Text>}
+      {heatmapUrl && (
+        <View style={styles.heatmapContainer}>
+          <Text style={styles.heatmapTitle}>Heatmap:</Text>
+          <Image
+            source={{ uri: heatmapUrl }}
+            style={styles.heatmapImage}
+            resizeMode="contain"
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -242,7 +262,23 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 20,
   },
+  heatmapContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  heatmapTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'blue',
+  },
+  heatmapImage: {
+    width: 300,
+    height: 200,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+  },
 });
 
 
-export default App;

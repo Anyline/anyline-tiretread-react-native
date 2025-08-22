@@ -4,16 +4,15 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.platform.ViewCompositionStrategy
+import io.anyline.tiretread.sdk.config.TireTreadConfig
 import io.anyline.tiretread.sdk.scanner.AnylineInternalFeature
 import io.anyline.tiretread.sdk.scanner.DistanceStatus
+import io.anyline.tiretread.sdk.scanner.ScanEvent
 import io.anyline.tiretread.sdk.scanner.TireTreadScanView
-import io.anyline.tiretread.sdk.scanner.TireTreadScanViewCallback
-import io.anyline.tiretread.sdk.scanner.TireTreadScanViewConfig
 import io.anyline.tiretread.sdk.scanner.TireTreadScanner
 import kotlinx.serialization.json.Json
 
-class TTRReactNativeScanActivity : AppCompatActivity(), TireTreadScanViewCallback {
+class TTRReactNativeScanActivity : AppCompatActivity() {
 
   @OptIn(AnylineInternalFeature::class)
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,10 +20,10 @@ class TTRReactNativeScanActivity : AppCompatActivity(), TireTreadScanViewCallbac
 
     var ttrView = TireTreadScanView(this)
 
-    var configJson = intent.getStringExtra("config")
+    var configJsonString = intent.getStringExtra("config")
     var tireWidthInt = intent.getIntExtra("tireWidth", 0)
 
-    val config = configJson?.let { Json.decodeFromString<TireTreadScanViewConfig>(it) }
+    val config = configJsonString?.let { Json.decodeFromString<TireTreadConfig>(it) }
 
     if (config == null) {
       TTRReactNativeCallbackManager.getCallback()?.onResultError("CONFIG_ABORT", "The Json could not be parsed successful")
@@ -33,40 +32,43 @@ class TTRReactNativeScanActivity : AppCompatActivity(), TireTreadScanViewCallbac
       return
     }
 
+    if (tireWidthInt != 0) {
+      config.scanConfig.tireWidth = tireWidthInt
+    }
+
     // Configure the TireTreadScanView
     ttrView.apply {
-      if (tireWidthInt != 0) {
-        init(config, tireWidthInt, this@TTRReactNativeScanActivity)
-      } else {
-        init(config, null, this@TTRReactNativeScanActivity)
-      }
-      setViewCompositionStrategy(
-        ViewCompositionStrategy.DisposeOnLifecycleDestroyed(
-          this@TTRReactNativeScanActivity
-        )
+      init(
+        tireTreadConfig = config,
+        onScanAborted = { uuid: String? ->
+          onScanAborted(uuid)
+        },
+        onScanProcessCompleted = { uuid: String ->
+          onScanProcessCompleted(uuid)
+        },
+        tireTreadScanViewCallback = null,
+        onError = { uuid: String?, exception: Exception ->
+          onUploadFailed(uuid, exception)
+        }
       )
     }
     setContentView(ttrView)
   }
 
-  override fun onScanAbort(uuid: String?) {
-    super.onScanAbort(uuid)
-
+  private fun onScanAborted(uuid: String?) {
     TTRReactNativeCallbackManager.getCallback()?.onResultError("SCAN_ABORT", "Scan aborted")
 
     finish()
   }
 
-  override fun onUploadCompleted(uuid: String?) {
-    super.onUploadCompleted(uuid)
+  private fun onScanProcessCompleted(uuid: String?)  {
 
     uuid?.let { TTRReactNativeCallbackManager.getCallback()?.onResultSuccess(it) }
 
     finish()
   }
 
-  override fun onUploadFailed(uuid: String?, exception: Exception) {
-    super.onUploadFailed(uuid, exception)
+  private fun onUploadFailed(uuid: String?, exception: Exception) {
 
     TTRReactNativeCallbackManager.getCallback()?.onResultError("UPLOAD_FAILED", exception.message ?: "Upload failed")
 
