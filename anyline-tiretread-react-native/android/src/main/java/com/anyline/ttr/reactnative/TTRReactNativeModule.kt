@@ -44,7 +44,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
     private lateinit var captureSession: CameraCaptureSession
     private lateinit var captureRequestBuilder: CaptureRequest.Builder
     private var captureCount = 0
-    private val maxCaptures = 30
+    private val maxCaptures = 70
     private var isFocusDistanceSupported = false
 
     @ReactMethod
@@ -116,11 +116,11 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
             // Set auto-focus mode
             captureRequestBuilder[CaptureRequest.CONTROL_AF_MODE] =
-                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                CaptureRequest.CONTROL_AF_MODE_AUTO
 
-            // Set manual focus distance to test support
-            captureRequestBuilder[CaptureRequest.LENS_FOCUS_DISTANCE]?.let {
-            }
+            // Trigger autofocus to wake up lazy focus systems
+            captureRequestBuilder[CaptureRequest.CONTROL_AF_TRIGGER] =
+                CaptureRequest.CONTROL_AF_TRIGGER_START
 
             cameraDevice.createCaptureSession(
                 listOf(surface),
@@ -158,10 +158,21 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
             ) {
                 try {
                     val focusDistance = result[CaptureResult.LENS_FOCUS_DISTANCE]
-                    if (focusDistance != null && focusDistance > 0) {
+                    // Accept any non-zero focus distance (positive or negative)
+                    // Some devices (e.g. Samsung A14) report negative values due to different optical implementations
+                    if (focusDistance != null && focusDistance != 0.0f) {
                         isFocusDistanceSupported = true
                     }
                     captureCount++
+
+                    // Escalating autofocus triggers for lazy devices
+                    if (!isFocusDistanceSupported) {
+                        when (captureCount) {
+                            5 -> triggerAutofocus(session)
+                            20 -> triggerAutofocus(session)
+                            50 -> triggerAutofocus(session)
+                        }
+                    }
 
                     // Check if we should stop capturing
                     if (isFocusDistanceSupported || captureCount >= maxCaptures) {
@@ -175,13 +186,12 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("FocusDistance", "Error in capture callback", e)
                     try {
                         captureSession.stopRepeating()
                         captureSession.abortCaptures()
                         cameraDevice.close()
                     } catch (closeError: Exception) {
-                        Log.e("FocusDistance", "Error closing camera after error", closeError)
+                        // Silently handle camera close errors
                     }
                     promise.reject("CAMERA_ERROR", "Error in Camera capture callback")
                 }
@@ -200,6 +210,18 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 promise.reject("CAMERA_ERROR", "Camera capture failed")
             }
+        }
+    }
+
+    private fun triggerAutofocus(session: CameraCaptureSession) {
+        try {
+            val triggerBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+            triggerBuilder.addTarget(Surface(surfaceTexture))
+            triggerBuilder[CaptureRequest.CONTROL_AF_MODE] = CaptureRequest.CONTROL_AF_MODE_AUTO
+            triggerBuilder[CaptureRequest.CONTROL_AF_TRIGGER] = CaptureRequest.CONTROL_AF_TRIGGER_START
+            session.capture(triggerBuilder.build(), null, null)
+        } catch (e: Exception) {
+            // Silently handle autofocus trigger failures
         }
     }
 
