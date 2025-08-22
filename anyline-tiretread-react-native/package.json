@@ -25,6 +25,9 @@
     "!**/__mocks__",
     "!**/.*"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "example": "yarn workspace anyline-ttr-mobile-wrapper-react-native-example",
     "test": "jest",
