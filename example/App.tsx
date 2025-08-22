@@ -80,7 +80,7 @@ export default function App() {
     isDeviceSupported()
       .then((compatible) => {
         if (compatible) {
-          initialize('22700466816818')
+          initialize('LICENSE_KEY')
             .then((response) => {
               setInitResult(response);
               setError(undefined);
