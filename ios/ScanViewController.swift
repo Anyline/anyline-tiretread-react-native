@@ -58,13 +58,22 @@ private extension ScanViewController {
 
     private func setupTireTreadScanView() {
         
+        guard let config = config else {
+            if let onResultError = self.onResultError {
+                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1003, userInfo: [NSLocalizedDescriptionKey: "Configuration is missing"]))
+            }
+            self.dismiss(animated: true)
+            return
+        }
+        
         self.scannerViewController = TireTreadScanViewKt.TireTreadScanView(
-                        config: config!,
+                        config: config,
                         onScanAborted: onScanAborted,
                         onScanProcessCompleted: onUploadCompleted,
                         callback: handleScanEvent
                     ) { measurementUUID, error in
-                        self.onResultError!(error as! NSError)
+                        let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.message ?? "Unknown error"])
+                        self.onResultError?(nsError)
                         
                         print("Initialization failed: \(error)")
                         self.dismiss(animated: true)
@@ -88,6 +97,7 @@ private extension ScanViewController {
         addChild(scannerViewController)
         view.addSubview(scannerViewController.view)
         
+        scannerViewController.view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             scannerViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
             scannerViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
