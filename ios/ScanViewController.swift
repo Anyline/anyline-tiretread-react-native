@@ -6,15 +6,11 @@
 //
 
 import UIKit
-import AVFoundation
-import CoreHaptics
-import MediaPlayer
 import AnylineTireTreadSdk
 
 class ScanViewController: UIViewController {
 
     // MARK: - Private Var's & Let's
-    private var volumeButtonObserver: VolumeButtonObserver?
 
     var onResultSuccess: ((String) -> Void)?
     var onResultError: ((NSError) -> Void)?
@@ -37,21 +33,17 @@ class ScanViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTireTreadScanView()
-        setupVolumeView()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.setupVolumeButtonObserver()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.onResultError = nil
         self.onResultSuccess = nil
-        self.resetVolumeButtonObserver()
         self.scannerViewController = nil
-    
     }
     
 
@@ -106,41 +98,6 @@ private extension ScanViewController {
         scannerViewController.didMove(toParent: self)
     }
 
-    func setupVolumeView() {
-        let volumeView = MPVolumeView(frame: CGRect(x: -1000, y: -1000, width: 0, height: 0))
-        view.addSubview(volumeView)
-    }
-}
-
-// MARK: - AVAudioSession for Volume buttons
-private extension ScanViewController {
-    func setupVolumeButtonObserver() {
-        volumeButtonObserver = VolumeButtonObserver()
-        volumeButtonObserver?.onVolumeButtonPressed = { [weak self] in
-            self?.handleVolumeButtonPressed()
-        }
-    }
-
-    func resetVolumeButtonObserver() {
-        self.volumeButtonObserver = nil
-    }
-
-    private func handleVolumeButtonPressed() {
-        if TireTreadScanner.companion.isInitialized {
-            if TireTreadScanner.companion.instance.isScanning {
-                TireTreadScanner.companion.instance.stopScanning()
-            } else {
-                if (TireTreadScanner.companion.instance.captureDistanceStatus == DistanceStatus.ok)
-                {
-                    TireTreadScanner.companion.instance.startScanning()
-                }
-                else {
-                    // Notify user to move the phone to the correct position before starting
-                    print("Move the phone to the correct position before starting")
-                }
-            }
-        }
-    }
     
     private func handleScanEvent(event: ScanEvent) {
         switch(event) {
@@ -162,19 +119,6 @@ private extension ScanViewController {
         self.dismiss(animated: true)
     }
     
-    func onUploadAborted(uuid: String?) {
-        if let onResultError = self.onResultError {
-            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1003, userInfo: [NSLocalizedDescriptionKey : "The upload was aborted."]))
-        }
-        self.dismiss(animated: true)
-    }
-    
-    func onUploadFailed(uuid: String?, exception: KotlinException) {
-        if let onResultError = self.onResultError {
-            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1004, userInfo: [NSLocalizedDescriptionKey : exception.description()]))
-        }
-        self.dismiss(animated: true)
-    }
     
     func onUploadCompleted(uuid: String?) {
         // On upload complete, we should check for Results.
@@ -193,33 +137,7 @@ private extension ScanViewController {
         self.dismiss(animated: true)
     }
     
-    func onFocusFound(uuid: String?) {
-    }
-    
-    func onScanStart(uuid: String?) {
-    }
-    
-    func onScanStop(uuid: String?) {
-        print("Showcase iOS: Scan stopped for uuid: \(uuid ?? "unknown")")
-    }
-    
-    func onImageUploaded(uuid: String?, uploaded: Int32, total: Int32) {
-        print("Showcase iOS: Image uploaded (\(uploaded)/\(total)) for uuid: \(uuid ?? "unknown")")
-    }
 
-    /// Called when the distance has changed.
-    ///
-    /// - Parameters:
-    ///   - uuid: The UUID associated with the distance change.
-    ///   - previousStatus: The previous distance status.
-    ///   - newStatus: The new distance status.
-    ///   - previousDistance: The previous distance value.
-    ///   - newDistance: The new distance value.
-    ///
-    /// Note: The distance values are provided in millimeters if the metric system is selected (`UserDefaultsManager.shared.imperialSystem = false`), and in inches if the imperial system is selected (`UserDefaultsManager.shared.imperialSystem = true`).
-    func onDistanceChanged(uuid: String?, previousStatus: DistanceStatus, newStatus: DistanceStatus, previousDistance: Float, newDistance: Float) {
-        
-    }
 
 }
 
