@@ -179,79 +179,12 @@ The result string from `getTreadDepthReportResult` is a JSON string containing t
   - `additionalContext` (object|null): Additional context about the measurement (if any).
 
 ## Configuration
-The Anyline TTR Mobile Wrapper uses a JSON configuration to define the behavior and appearance of the tire tread scanning activity. Below is a sample configuration and an explanation of each parameter. This is just an sample to showcase the functionality. Anyline does not provide any localisations.
+The Anyline TTR Mobile Wrapper uses a JSON configuration to define the behavior and appearance of the tire tread scanning activity.
 
-### Sample Configuration
-```json
-{
-  "useDefaultUi": true,
-  "useDefaultHaptic": true,
-  "defaultUiConfig": {
-    "distanceIndicatorConfig": {
-      "visible": true,
-      "textOk": "Mantenha a distância.",
-      "textMoveCloser": "Chegue mais perto.",
-      "textMoveAway": "Aumente a distância."
-    },
-    "focusPointTooltipConfig": {
-      "visible": true,
-      "text": "Mova o dispositivo para frente e para trás para detectar o pneu."
-    },
-    "howToScanTooltipConfig": {
-      "visible": true,
-      "text": "Alinhe o pneu com a máscara."
-    },
-    "tapToStartScanningTooltipConfig": {
-      "visible": true,
-      "text": "Toque na tela para iniciar o processo."
-    },
-    "tireOverlayConfig": {
-      "visible": true
-    },
-    "uploadViewConfig": {
-      "visible": true,
-      "text": "Enviando imagens, aguarde."
-    },
-    "progressTimerConfig": {
-      "visible": true
-    },
-    "lineProgressBarConfig": {
-      "visible": true
-    }
-  },
-  "scanSpeed": "Fast",
-  "measurementSystem": "Metric"
-}
-```
-### Configuration Parameters
-- `useDefaultUi` (boolean): Enables or disables the default user interface.
-- `useDefaultHaptic` (boolean): Enables or disables haptic feedback.
-- `defaultUiConfig` (object): Configuration for the default UI components.
-  - `distanceIndicatorConfig` (object): Configuration for the distance indicator.
-    - `visible` (boolean): Determines if the distance indicator is visible.
-    - `textOk` (string): Text displayed when the distance is correct.
-    - `textMoveCloser` (string): Text displayed when the device needs to be moved closer.
-    - `textMoveAway` (string): Text displayed when the device needs to be moved away.
-  - `focusPointTooltipConfig` (object): Configuration for the focus point tooltip.
-    - `visible` (boolean): Determines if the focus point tooltip is visible.
-    - `text` (string): Text displayed in the focus point tooltip.
-  - `howToScanTooltipConfig` (object): Configuration for the how-to-scan tooltip.
-    - `visible` (boolean): Determines if the how-to-scan tooltip is visible.
-    - `text` (string): Text displayed in the how-to-scan tooltip.
-  - `tapToStartScanningTooltipConfig` (object): Configuration for the tap-to-start scanning tooltip.
-    - `visible` (boolean): Determines if the tap-to-start scanning tooltip is visible.
-    - `text` (string): Text displayed in the tap-to-start scanning tooltip.
-  - `tireOverlayConfig` (object): Configuration for the tire overlay.
-    - `visible` (boolean): Determines if the tire overlay is visible.
-  - `uploadViewConfig` (object): Configuration for the upload view.
-    - `visible` (boolean): Determines if the upload view is visible.
-    - `text` (string): Text displayed in the upload view.
-  - `progressTimerConfig` (object): Configuration for the progress timer.
-    - `visible` (boolean): Determines if the progress timer is visible.
-  - `lineProgressBarConfig` (object): Configuration for the line progress bar.
-    - `visible` (boolean): Determines if the line progress bar is visible.
-- `scanSpeed` (string): Sets the scanning speed. Possible values: `Fast`, `Slow`.
-- `measurementSystem` (string): Sets the measurement system. Possible values: `Metric`, `Imperial`.
+For complete documentation on all available configuration options, please refer to:
+- [Scan Configuration](https://documentation.anyline.com/tiretreadsdk-component/latest/scan-configuration.html) - Complete configuration schema and options
+- [Default UI Overview](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/overview.html) - Overview of the default UI components
+- [Customizing the Default UI](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/customizing.html) - Detailed customization options for UI elements
 
 ## Get Help (Support)
 For any issues or questions, please open a support request using the [Anyline Helpdesk](https://support.anyline.com). We don't actively monitor issues raised on GitHub.
