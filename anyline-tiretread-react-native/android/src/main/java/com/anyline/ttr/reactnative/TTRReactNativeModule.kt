@@ -49,7 +49,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun isAndroidDeviceSupported(promise: Promise) {
-        val currentActivity = currentActivity ?: run {
+        val currentActivity = reactApplicationContext.currentActivity ?: run {
             promise.reject("NO_ACTIVITY", "Activity doesn't exist")
             return
         }
@@ -229,7 +229,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   fun initTireTread(licenseKey: String, promise: Promise) {
     Thread {
       try {
-        val activity = currentActivity
+        val activity = reactApplicationContext.currentActivity
         if (activity != null) {
           AnylineTireTreadSdk.init(licenseKey, activity)
           activity.runOnUiThread {
@@ -252,7 +252,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun startTireTreadScanActivity(config: String, tireWidth: Integer, promise: Promise) {
-    val currentActivity = currentActivity
+    val currentActivity = reactApplicationContext.currentActivity
     if (currentActivity != null) {
 
       TTRReactNativeCallbackManager.registerCallback(object : TTRReactNativeResultCallback {
@@ -281,7 +281,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
         when(response){
           is Response.Success -> {
-            currentActivity?.runOnUiThread { promise.resolve(response.data.toJson()) }
+            reactApplicationContext.currentActivity?.runOnUiThread { promise.resolve(response.data.toJson()) }
           }
           is Response.Error -> {
             promise.reject(
@@ -307,7 +307,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
         when(response){
           is Response.Success -> {
-            currentActivity?.runOnUiThread { promise.resolve(response.data.url) }
+            reactApplicationContext.currentActivity?.runOnUiThread { promise.resolve(response.data.url) }
           }
           is Response.Error -> {
             val message = response.errorMessage ?: "Unknown error"
