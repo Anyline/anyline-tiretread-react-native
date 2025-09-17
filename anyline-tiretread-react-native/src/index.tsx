@@ -5,7 +5,7 @@ import {
   type EmitterSubscription,
 } from 'react-native';
 
-const LINKING_ERROR =
+const getLinkingError = () =>
   `The package 'anyline-ttr-mobile-wrapper-react-native' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
@@ -18,7 +18,7 @@ const AnylineTtrMobileWrapperReactNative =
         {},
         {
           get() {
-            throw new Error(LINKING_ERROR);
+            throw new Error(getLinkingError());
           },
         }
       );
