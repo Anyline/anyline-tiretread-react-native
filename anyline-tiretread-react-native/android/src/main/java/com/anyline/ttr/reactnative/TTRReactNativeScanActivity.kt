@@ -4,15 +4,24 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableMap
 import io.anyline.tiretread.sdk.config.TireTreadConfig
 import io.anyline.tiretread.sdk.scanner.AnylineInternalFeature
 import io.anyline.tiretread.sdk.scanner.DistanceStatus
+import io.anyline.tiretread.sdk.scanner.OnDistanceChanged
+import io.anyline.tiretread.sdk.scanner.OnImageUploaded
+import io.anyline.tiretread.sdk.scanner.OnScanStarted
+import io.anyline.tiretread.sdk.scanner.OnScanStopped
 import io.anyline.tiretread.sdk.scanner.ScanEvent
 import io.anyline.tiretread.sdk.scanner.TireTreadScanView
 import io.anyline.tiretread.sdk.scanner.TireTreadScanner
 import kotlinx.serialization.json.Json
 
 class TTRReactNativeScanActivity : AppCompatActivity() {
+
+  private var scanCameraDirection: CameraDirectionHelper.CameraDirection = CameraDirectionHelper.CameraDirection.UNKNOWN
+  private var currentMeasurementUUID: String? = null
 
   @OptIn(AnylineInternalFeature::class)
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +55,7 @@ class TTRReactNativeScanActivity : AppCompatActivity() {
         onScanProcessCompleted = { uuid: String ->
           onScanProcessCompleted(uuid)
         },
-        tireTreadScanViewCallback = null,
+        tireTreadScanViewCallback = ::handleScanEvent,
         onError = { uuid: String?, exception: Exception ->
           onUploadFailed(uuid, exception)
         }
@@ -63,7 +72,11 @@ class TTRReactNativeScanActivity : AppCompatActivity() {
 
   private fun onScanProcessCompleted(uuid: String?)  {
 
-    uuid?.let { TTRReactNativeCallbackManager.getCallback()?.onResultSuccess(it) }
+    uuid?.let {
+      // Store camera direction for retrieval if needed
+      TTRReactNativeCallbackManager.setCameraDirection(scanCameraDirection.name)
+      TTRReactNativeCallbackManager.getCallback()?.onResultSuccess(it)
+    }
 
     finish()
   }
@@ -73,6 +86,57 @@ class TTRReactNativeScanActivity : AppCompatActivity() {
     TTRReactNativeCallbackManager.getCallback()?.onResultError("UPLOAD_FAILED", exception.message ?: "Upload failed")
 
     finish()
+  }
+
+  private fun handleScanEvent(event: ScanEvent) {
+    when (event) {
+      is OnScanStarted -> {
+        currentMeasurementUUID = event.measurementUUID
+        scanCameraDirection = CameraDirectionHelper.getCameraDirection(this)
+
+        val params = Arguments.createMap().apply {
+          putString("type", "scanStarted")
+          putString("measurementUUID", event.measurementUUID)
+          putString("cameraDirection", scanCameraDirection.name)
+        }
+        sendEvent("TireTreadScanEvent", params)
+      }
+      is OnScanStopped -> {
+        val params = Arguments.createMap().apply {
+          putString("type", "scanStopped")
+          putString("measurementUUID", currentMeasurementUUID)
+        }
+        sendEvent("TireTreadScanEvent", params)
+      }
+      is OnImageUploaded -> {
+        val params = Arguments.createMap().apply {
+          putString("type", "imageUploaded")
+          putString("measurementUUID", currentMeasurementUUID)
+          putInt("uploaded", event.uploaded)
+          putInt("total", event.total)
+        }
+        sendEvent("TireTreadScanEvent", params)
+      }
+      is OnDistanceChanged -> {
+        val params = Arguments.createMap().apply {
+          putString("type", "distanceChanged")
+          putString("measurementUUID", currentMeasurementUUID)
+          putString("distanceStatus", event.newStatus.name)
+        }
+        sendEvent("TireTreadScanEvent", params)
+      }
+      else -> {
+        // Handle other events if needed
+      }
+    }
+  }
+
+  private fun sendEvent(eventName: String, params: WritableMap) {
+    try {
+      TTRReactNativeModule.moduleInstance?.sendEvent(eventName, params)
+    } catch (e: Exception) {
+      // Silent fail if module is not available
+    }
   }
 
   override fun dispatchKeyEvent(event: KeyEvent): Boolean {

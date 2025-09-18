@@ -15,13 +15,15 @@ class ScanViewController: UIViewController {
 
     // MARK: - Private Var's & Let's
     private var volumeButtonObserver: VolumeButtonObserver?
+    private var scanCameraDirection: CameraDirection = .unknown
+    private var currentMeasurementUUID: String?
 
     var onResultSuccess: ((String) -> Void)?
     var onResultError: ((NSError) -> Void)?
 
     var scannerViewController: UIViewController?
     var dismissViewController: (() -> Void)?
-    
+
     var config: String?
 
     // MARK: - Init
@@ -146,15 +148,40 @@ private extension ScanViewController {
 
     private func handleScanEvent(event: ScanEvent) {
         switch(event) {
-                
-            case let event as OnImageUploaded:
-                print("onImageUploaded: \(event.total) images uploaded in total")
+            case let event as OnScanStarted:
+                currentMeasurementUUID = event.measurementUUID
+                scanCameraDirection = CameraDirectionHelper.getCameraDirection()
+
+                let eventData: [String: Any] = [
+                    "type": "scanStarted",
+                    "measurementUUID": event.measurementUUID ?? "",
+                    "cameraDirection": CameraDirectionHelper.cameraDirectionToString(scanCameraDirection)
+                ]
+                AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
                 break
-                
+
+            case let event as OnScanStopped:
+                let eventData: [String: Any] = [
+                    "type": "scanStopped",
+                    "measurementUUID": currentMeasurementUUID ?? ""
+                ]
+                AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
+                break
+
+            case let event as OnImageUploaded:
+                let eventData: [String: Any] = [
+                    "type": "imageUploaded",
+                    "measurementUUID": currentMeasurementUUID ?? "",
+                    "uploaded": event.uploaded,
+                    "total": event.total
+                ]
+                AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
+                break
+
             default:
                 print("ScanEvent: \(event.description)")
                 break
-            }
+        }
     }
     
     func onScanAborted(uuid: String?) {

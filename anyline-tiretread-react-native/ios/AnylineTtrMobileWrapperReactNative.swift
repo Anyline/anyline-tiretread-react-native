@@ -1,7 +1,23 @@
 import AnylineTireTreadSdk
 
 @objc(AnylineTtrMobileWrapperReactNative)
-class AnylineTtrMobileWrapperReactNative: NSObject {
+class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
+
+    static var sharedInstance: AnylineTtrMobileWrapperReactNative?
+
+    override init() {
+        super.init()
+        AnylineTtrMobileWrapperReactNative.sharedInstance = self
+    }
+
+    override func supportedEvents() -> [String]! {
+        return ["TireTreadScanEvent"]
+    }
+
+    @objc
+    static func sendEvent(_ name: String, body: Any) {
+        sharedInstance?.sendEvent(withName: name, body: body)
+    }
 
     @objc(initTireTread:withResolver:withRejecter:)
     func initTireTread(licenseKey: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {

@@ -5,6 +5,7 @@ import android.content.Intent
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.bridge.ReactMethod
 import io.anyline.tiretread.sdk.AnylineTireTreadSdk
 import io.anyline.tiretread.sdk.Response
@@ -34,6 +35,10 @@ import io.anyline.tiretread.sdk.SdkLicenseKeyInvalidException
 
 class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
+
+  init {
+    moduleInstance = this
+  }
 
   override fun getName(): String {
     return NAME
@@ -328,7 +333,29 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
     }.start()
   }
 
+  // Helper method to send events to JavaScript
+  fun sendEvent(eventName: String, params: com.facebook.react.bridge.WritableMap?) {
+    reactApplicationContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+      .emit(eventName, params)
+  }
+
+  // Required for NativeEventEmitter - these are no-op implementations
+  // but React Native requires them to be present to avoid runtime warnings
+  @ReactMethod
+  fun addListener(eventName: String) {
+    // Keep: Required for RN NativeEventEmitter
+  }
+
+  @ReactMethod
+  fun removeListeners(count: Integer) {
+    // Keep: Required for RN NativeEventEmitter
+  }
+
   companion object {
     const val NAME = "AnylineTtrMobileWrapperReactNative"
+
+    // Static reference for event sending from activities
+    var moduleInstance: TTRReactNativeModule? = null
   }
 }
