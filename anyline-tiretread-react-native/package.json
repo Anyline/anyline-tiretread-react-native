@@ -29,7 +29,6 @@
     "node": ">=18"
   },
   "scripts": {
-    "example": "yarn workspace anyline-ttr-mobile-wrapper-react-native-example",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -80,10 +79,6 @@
     "react": ">=18.2.0",
     "react-native": ">=0.73.6"
   },
-  "workspaces": [
-    "example"
-  ],
-  "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
