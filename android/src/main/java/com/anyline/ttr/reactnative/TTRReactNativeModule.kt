@@ -131,7 +131,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                                 createCaptureCallback(promise),
                                 null
                             )
-                        } catch (e: CameraAccessException) {
+                        } catch (e: Exception) {
                             promise.reject("CAMERA_ERROR", "Failed to start capture session")
                         }
                     }
@@ -179,7 +179,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                             captureSession.abortCaptures()
                             cameraDevice.close()
                             promise.resolve(isFocusDistanceSupported)
-                        } catch (e: CameraAccessException) {
+                        } catch (e: Exception) {
                             promise.resolve(isFocusDistanceSupported)
                         }
                     }
@@ -204,7 +204,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                     session.stopRepeating()
                     session.abortCaptures()
                     cameraDevice.close()
-                } catch (e: CameraAccessException) {
+                } catch (e: Exception) {
                 }
                 promise.reject("CAMERA_ERROR", "Camera capture failed")
             }
