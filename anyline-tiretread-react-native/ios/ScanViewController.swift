@@ -78,8 +78,6 @@ private extension ScanViewController {
                         callback: handleScanEvent
                     ) { measurementUUID, error in
                         self.onResultError!(error as! NSError)
-                        
-                        print("Initialization failed: \(error)")
                         self.dismiss(animated: true)
                     }
 
@@ -140,7 +138,6 @@ private extension ScanViewController {
                 }
                 else {
                     // Notify user to move the phone to the correct position before starting
-                    print("Move the phone to the correct position before starting")
                 }
             }
         }
@@ -179,7 +176,6 @@ private extension ScanViewController {
                 break
 
             default:
-                print("ScanEvent: \(event.description)")
                 break
         }
     }
@@ -229,11 +225,9 @@ private extension ScanViewController {
     }
     
     func onScanStop(uuid: String?) {
-        print("Showcase iOS: Scan stopped for uuid: \(uuid ?? "unknown")")
     }
-    
+
     func onImageUploaded(uuid: String?, uploaded: Int32, total: Int32) {
-        print("Showcase iOS: Image uploaded (\(uploaded)/\(total)) for uuid: \(uuid ?? "unknown")")
     }
 
     /// Called when the distance has changed.

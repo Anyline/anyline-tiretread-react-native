@@ -24,7 +24,6 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
         DispatchQueue.main.async {
             do {
               try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
-                NSLog("Success")
                 resolve("Initialization successful")
             } catch let error as NSError {
                 reject(String(error.code), error.localizedDescription, error)

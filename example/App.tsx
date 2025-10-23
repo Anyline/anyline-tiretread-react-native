@@ -94,14 +94,12 @@ export default function App() {
   }, [isProcessing, startWiggleAnimation, wiggleAnim]);
 
   const handleCameraLeft = React.useCallback(() => {
-    console.log('Camera moved LEFT');
     setLastCameraMove('LEFT');
     setCameraMoveCount(prev => ({ ...prev, left: prev.left + 1 }));
     startFlashAnimation();
   }, [startFlashAnimation]);
 
   const handleCameraRight = React.useCallback(() => {
-    console.log('Camera moved RIGHT');
     setLastCameraMove('RIGHT');
     setCameraMoveCount(prev => ({ ...prev, right: prev.right + 1 }));
     startFlashAnimation();
@@ -155,25 +153,20 @@ export default function App() {
   };
 
   const handleScanPress = async (config: string) => {
-    console.log('=== handleScanPress called ===');
     if (!initResult) {
-      console.log('ERROR: Not initialized');
       setError('Please initialize first');
       return;
     }
-    console.log('Clearing previous results...');
     setScanResult(undefined);
     setReportResult(undefined);
     setHeatmapUrl(undefined);
     setScanDirection(undefined);
     setLastCameraMove(undefined);
     setCameraMoveCount({ left: 0, right: 0 });
-    console.log('Calling scanWithEvents...');
     scanWithEvents(
       config,
       undefined,
       (event: ScanEvent) => {
-        console.log('Event received:', event);
         if (event.type === 'scanStarted' && event.cameraDirection) {
           setScanDirection(event.cameraDirection);
         }
@@ -182,13 +175,11 @@ export default function App() {
       handleCameraRight
     )
       .then(({measurementUUID, cameraDirection}) => {
-        console.log('Scan SUCCESS:', measurementUUID, cameraDirection);
         setScanResult(measurementUUID);
         setScanDirection(cameraDirection);
         setError(undefined);
       })
       .catch((e) => {
-        console.log('Scan FAILED:', e);
         setError('Scanning failed: ' + e.message);
         setScanResult(undefined);
         setScanDirection(undefined);
