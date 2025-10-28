@@ -15,13 +15,15 @@ class ScanViewController: UIViewController {
 
     // MARK: - Private Var's & Let's
     private var volumeButtonObserver: VolumeButtonObserver?
+    private var scanCameraDirection: CameraDirection = .unknown
+    private var currentMeasurementUUID: String?
 
     var onResultSuccess: ((String) -> Void)?
     var onResultError: ((NSError) -> Void)?
 
     var scannerViewController: UIViewController?
     var dismissViewController: (() -> Void)?
-    
+
     var config: String?
 
     // MARK: - Init
@@ -76,8 +78,6 @@ private extension ScanViewController {
                         callback: handleScanEvent
                     ) { measurementUUID, error in
                         self.onResultError!(error as! NSError)
-                        
-                        print("Initialization failed: \(error)")
                         self.dismiss(animated: true)
                     }
 
@@ -138,7 +138,6 @@ private extension ScanViewController {
                 }
                 else {
                     // Notify user to move the phone to the correct position before starting
-                    print("Move the phone to the correct position before starting")
                 }
             }
         }
@@ -146,15 +145,39 @@ private extension ScanViewController {
 
     private func handleScanEvent(event: ScanEvent) {
         switch(event) {
-                
+            case let event as OnScanStarted:
+                currentMeasurementUUID = event.measurementUUID
+                scanCameraDirection = CameraDirectionHelper.getCameraDirection()
+
+                let eventData: [String: Any] = [
+                    "type": "scanStarted",
+                    "measurementUUID": event.measurementUUID ?? "",
+                    "cameraDirection": CameraDirectionHelper.cameraDirectionToString(scanCameraDirection)
+                ]
+                AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
+                break
+
+            case let event as OnScanStopped:
+                let eventData: [String: Any] = [
+                    "type": "scanStopped",
+                    "measurementUUID": currentMeasurementUUID ?? ""
+                ]
+                AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
+                break
+
             case let event as OnImageUploaded:
-                print("onImageUploaded: \(event.total) images uploaded in total")
+                let eventData: [String: Any] = [
+                    "type": "imageUploaded",
+                    "measurementUUID": currentMeasurementUUID ?? "",
+                    "uploaded": event.uploaded,
+                    "total": event.total
+                ]
+                AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
                 break
-                
+
             default:
-                print("ScanEvent: \(event.description)")
                 break
-            }
+        }
     }
     
     func onScanAborted(uuid: String?) {
@@ -202,11 +225,9 @@ private extension ScanViewController {
     }
     
     func onScanStop(uuid: String?) {
-        print("Showcase iOS: Scan stopped for uuid: \(uuid ?? "unknown")")
     }
-    
+
     func onImageUploaded(uuid: String?, uploaded: Int32, total: Int32) {
-        print("Showcase iOS: Image uploaded (\(uploaded)/\(total)) for uuid: \(uuid ?? "unknown")")
     }
 
     /// Called when the distance has changed.

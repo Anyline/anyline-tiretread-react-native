@@ -1,6 +1,7 @@
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_MODULE(AnylineTtrMobileWrapperReactNative, NSObject)
+@interface RCT_EXTERN_MODULE(AnylineTtrMobileWrapperReactNative, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(initTireTread:(NSString)licenseKey
                  withResolver:(RCTPromiseResolveBlock)resolve

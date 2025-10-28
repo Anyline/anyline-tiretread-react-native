@@ -20,10 +20,12 @@ import {
 } from 'react-native';
 import {
   initialize,
-  scan,
+  scanWithEvents,
   getResult,
   getHeatMap,
   isDeviceSupported,
+  type CameraDirection,
+  type ScanEvent,
 } from 'anyline-ttr-mobile-wrapper-react-native';
 
 const defaultConfig = JSON.stringify(
@@ -33,6 +35,8 @@ const defaultImperialConfig = JSON.stringify(
   require('./assets/config/sample_config_default_imperial.json')
 );
 
+const LICENSE_KEY = 'LDQwhwLCeSvqWgeW97PttJinPmHM40bLUAvmT38Q4CU';
+
 export default function App() {
   const [initResult, setInitResult] = React.useState<string | undefined>();
   const [scanResult, setScanResult] = React.useState<string | undefined>();
@@ -40,7 +44,11 @@ export default function App() {
   const [heatmapUrl, setHeatmapUrl] = React.useState<string | undefined>();
   const [error, setError] = React.useState<string | undefined>();
   const [isProcessing, setIsProcessing] = React.useState<boolean>(false);
+  const [scanDirection, setScanDirection] = React.useState<CameraDirection | undefined>();
+  const [lastCameraMove, setLastCameraMove] = React.useState<'LEFT' | 'RIGHT' | undefined>();
+  const [cameraMoveCount, setCameraMoveCount] = React.useState({ left: 0, right: 0 });
   const wiggleAnim = React.useRef(new Animated.Value(0)).current;
+  const flashAnim = React.useRef(new Animated.Value(0)).current;
 
   const startWiggleAnimation = React.useCallback(() => {
     Animated.loop(
@@ -61,6 +69,21 @@ export default function App() {
     ).start();
   }, [wiggleAnim]);
 
+  const startFlashAnimation = React.useCallback(() => {
+    Animated.sequence([
+      Animated.timing(flashAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(flashAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [flashAnim]);
+
   React.useEffect(() => {
     if (isProcessing) {
       startWiggleAnimation();
@@ -69,6 +92,18 @@ export default function App() {
       wiggleAnim.setValue(0);
     }
   }, [isProcessing, startWiggleAnimation, wiggleAnim]);
+
+  const handleCameraLeft = React.useCallback(() => {
+    setLastCameraMove('LEFT');
+    setCameraMoveCount(prev => ({ ...prev, left: prev.left + 1 }));
+    startFlashAnimation();
+  }, [startFlashAnimation]);
+
+  const handleCameraRight = React.useCallback(() => {
+    setLastCameraMove('RIGHT');
+    setCameraMoveCount(prev => ({ ...prev, right: prev.right + 1 }));
+    startFlashAnimation();
+  }, [startFlashAnimation]);
 
   const handleInitPress = async () => {
     const hasPermission = await requestCameraPermission();
@@ -80,7 +115,7 @@ export default function App() {
     isDeviceSupported()
       .then((compatible) => {
         if (compatible) {
-          initialize('LICENSE_KEY')
+          initialize(LICENSE_KEY)
             .then((response) => {
               setInitResult(response);
               setError(undefined);
@@ -122,14 +157,32 @@ export default function App() {
       setError('Please initialize first');
       return;
     }
-    scan(config)
-      .then((response) => {
-        setScanResult(response);
+    setScanResult(undefined);
+    setReportResult(undefined);
+    setHeatmapUrl(undefined);
+    setScanDirection(undefined);
+    setLastCameraMove(undefined);
+    setCameraMoveCount({ left: 0, right: 0 });
+    scanWithEvents(
+      config,
+      undefined,
+      (event: ScanEvent) => {
+        if (event.type === 'scanStarted' && event.cameraDirection) {
+          setScanDirection(event.cameraDirection);
+        }
+      },
+      handleCameraLeft,
+      handleCameraRight
+    )
+      .then(({measurementUUID, cameraDirection}) => {
+        setScanResult(measurementUUID);
+        setScanDirection(cameraDirection);
         setError(undefined);
       })
       .catch((e) => {
         setError('Scanning failed: ' + e.message);
         setScanResult(undefined);
+        setScanDirection(undefined);
       });
   };
 
@@ -178,8 +231,47 @@ export default function App() {
     outputRange: ['-10deg', '10deg'],
   });
 
+  const flashOpacity = flashAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 1],
+  });
+
   return (
     <View style={styles.container}>
+      {/* Camera Direction Indicator */}
+      {(cameraMoveCount.left > 0 || cameraMoveCount.right > 0) && (
+        <View style={styles.directionIndicator}>
+          <Text style={styles.directionTitle}>Camera Movement:</Text>
+          <View style={styles.directionRow}>
+            <Animated.View
+              style={[
+                styles.directionBox,
+                lastCameraMove === 'LEFT' && { opacity: flashOpacity }
+              ]}
+            >
+              <Text style={styles.arrow}>{'←'}</Text>
+              <Text style={styles.directionLabel}>LEFT</Text>
+              <Text style={styles.directionCount}>{cameraMoveCount.left}</Text>
+            </Animated.View>
+            <Animated.View
+              style={[
+                styles.directionBox,
+                lastCameraMove === 'RIGHT' && { opacity: flashOpacity }
+              ]}
+            >
+              <Text style={styles.arrow}>{'→'}</Text>
+              <Text style={styles.directionLabel}>RIGHT</Text>
+              <Text style={styles.directionCount}>{cameraMoveCount.right}</Text>
+            </Animated.View>
+          </View>
+          {lastCameraMove && (
+            <Text style={styles.lastMoveText}>
+              Last move: {lastCameraMove}
+            </Text>
+          )}
+        </View>
+      )}
+
       <View style={styles.buttonContainer}>
         <Button title="Initialize" onPress={handleInitPress} />
       </View>
@@ -224,6 +316,9 @@ export default function App() {
       )}
       <Text style={styles.text}>{`Init Result: ${initResult}`}</Text>
       <Text style={styles.text}>{`MeasurementUuid: ${scanResult}`}</Text>
+      {scanDirection && (
+        <Text style={styles.text}>{`Camera Direction: ${scanDirection}`}</Text>
+      )}
       <Text style={styles.text}>{`Scan Result: ${reportResult}`}</Text>
       {error && <Text style={styles.errorText}>{error}</Text>}
       {heatmapUrl && (
@@ -279,6 +374,53 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
   },
+  directionIndicator: {
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    alignItems: 'center',
+  },
+  directionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  directionRow: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  directionBox: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    alignItems: 'center',
+    minWidth: 100,
+  },
+  arrow: {
+    fontSize: 32,
+    marginBottom: 5,
+  },
+  directionLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  directionCount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  lastMoveText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+  },
 });
-
-

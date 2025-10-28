@@ -9,13 +9,13 @@ exports.initialize = initialize;
 exports.isDeviceSupported = isDeviceSupported;
 exports.scan = scan;
 var _reactNative = require("react-native");
-const LINKING_ERROR = `The package 'anyline-ttr-mobile-wrapper-react-native' doesn't seem to be linked. Make sure: \n\n` + _reactNative.Platform.select({
+const getLinkingError = () => `The package 'anyline-ttr-mobile-wrapper-react-native' doesn't seem to be linked. Make sure: \n\n` + _reactNative.Platform.select({
   ios: "- You have run 'pod install'\n",
   default: ''
 }) + '- You rebuilt the app after installing the package\n' + '- You are not using Expo Go\n';
 const AnylineTtrMobileWrapperReactNative = _reactNative.NativeModules.AnylineTtrMobileWrapperReactNative ? _reactNative.NativeModules.AnylineTtrMobileWrapperReactNative : new Proxy({}, {
   get() {
-    throw new Error(LINKING_ERROR);
+    throw new Error(getLinkingError());
   }
 });
 function initialize(licenseKey) {
