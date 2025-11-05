@@ -35,7 +35,7 @@ const defaultImperialConfig = JSON.stringify(
   require('./assets/config/sample_config_default_imperial.json')
 );
 
-const LICENSE_KEY = 'LDQwhwLCeSvqWgeW97PttJinPmHM40bLUAvmT38Q4CU';
+const LICENSE_KEY = 'INSERT_YOUR_KEY';
 
 export default function App() {
   const [initResult, setInitResult] = React.useState<string | undefined>();
