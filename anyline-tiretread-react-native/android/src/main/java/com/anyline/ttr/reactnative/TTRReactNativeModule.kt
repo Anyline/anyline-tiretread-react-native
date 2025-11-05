@@ -2,6 +2,7 @@ package com.anyline.ttr.reactnative
 
 import android.Manifest
 import android.content.Intent
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -261,9 +262,13 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
     if (currentActivity != null) {
 
       TTRReactNativeCallbackManager.registerCallback(object : TTRReactNativeResultCallback {
-        override fun onResultSuccess(uuid: String) {
+        override fun onResultSuccess(uuid: String, cameraDirection: String?) {
           TTRReactNativeCallbackManager.unregisterCallback(this)
-          promise.resolve(uuid)
+          val result = Arguments.createMap().apply {
+            putString("uuid", uuid)
+            putString("cameraDirection", cameraDirection)
+          }
+          promise.resolve(result)
         }
 
         override fun onResultError(errorCode: String, errorMessage: String) {
