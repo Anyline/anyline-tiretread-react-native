@@ -2,6 +2,7 @@ package com.anyline.ttr.reactnative
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -53,6 +54,63 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
     private val maxCaptures = 70
     private var isFocusDistanceSupported = false
 
+    private val supportedDevicePatterns = listOf(
+        "23021RAA2Y",
+        "220233L2G",
+        "ELE-L29",
+        "A6003",  // OnePlus 6
+        "GM19.*", // OnePlus 7*
+        "HD19.*", // OnePlus 7*
+        "IN20.*", // OnePlus 8*
+        "LE21.*", // OnePlus 9*
+        "NE22.*", // OnePlus 10*
+        "OnePlus.*",
+        "ONEPLUS.*",
+        "Pixel.*",
+        "POT-LX1",
+        "Redmi Note 8 Pro",
+        "M2003J15SC", // Redmi Note 9
+        "SM-A14.*",
+        "SM-A155.*",
+        "SM-A20.*",
+        "SM-A226B",
+        "SM-A32.*",
+        "SM-A33.*",
+        "SM-A405FN",
+        "SM-A5\\d[5-9].*", // Samsung A50 and newer (no A5)
+        "SM-G398FN", // Samsung xcover 4s
+        "SM-G525F",
+        "SM-G736.*", // Samsung xcover 6 pro
+        "SM-G98.*", // Samsung S20*
+        "SM-G99.*", // Samsung S21*
+        "SM-S9.*", // Samsung S22/3/4/5
+        "SM-M135F",
+        "SM-S711B",
+        "SM-T575", // Samsung Tab Active 3
+        "SM-T630", // Samsung Tab Active 4
+        "SM-X306B", // Samsung Tab Active 5
+        "EM45",
+        "TC26",
+        "TC27",
+        "TC58",
+        "TC78",
+    )
+
+    private fun isDeviceInAllowlist(): Boolean {
+        return try {
+            val deviceModel = Build.MODEL ?: return false
+            supportedDevicePatterns.any { pattern ->
+                try {
+                    deviceModel.matches(Regex(pattern))
+                } catch (e: Exception) {
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     @ReactMethod
     fun isAndroidDeviceSupported(promise: Promise) {
         val currentActivity = reactApplicationContext.currentActivity ?: run {
@@ -65,6 +123,16 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
             if (currentActivity.checkSelfPermission(Manifest.permission.CAMERA) !=
                 PackageManager.PERMISSION_GRANTED) {
                 throw SecurityException("Camera permission must be granted before calling this method")
+            }
+
+            // After permission check, see if we can bypass the camera check
+            try {
+                if (isDeviceInAllowlist()) {
+                    promise.resolve(true)
+                    return
+                }
+            } catch (e: Exception) {
+                // Silently fail allowlist check and continue with camera check
             }
 
             cameraManager = currentActivity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -139,7 +207,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                                 createCaptureCallback(promise),
                                 null
                             )
-                        } catch (e: CameraAccessException) {
+                        } catch (e: Exception) {
                             promise.reject("CAMERA_ERROR", "Failed to start capture session")
                         }
                     }
@@ -187,7 +255,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                             captureSession.abortCaptures()
                             cameraDevice.close()
                             promise.resolve(isFocusDistanceSupported)
-                        } catch (e: CameraAccessException) {
+                        } catch (e: Exception) {
                             promise.resolve(isFocusDistanceSupported)
                         }
                     }
@@ -212,7 +280,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
                     session.stopRepeating()
                     session.abortCaptures()
                     cameraDevice.close()
-                } catch (e: CameraAccessException) {
+                } catch (e: Exception) {
                 }
                 promise.reject("CAMERA_ERROR", "Camera capture failed")
             }
