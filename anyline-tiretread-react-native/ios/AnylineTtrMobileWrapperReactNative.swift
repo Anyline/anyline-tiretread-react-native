@@ -45,8 +45,12 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                 reject(String(error.code), error.localizedDescription, error)
             }
             
-            viewController.onResultSuccess = { uuid in
-                resolve(uuid)
+            viewController.onResultSuccess = { uuid, cameraDirection in
+                let result: [String: Any] = [
+                    "uuid": uuid,
+                    "cameraDirection": CameraDirectionHelper.cameraDirectionToString(cameraDirection)
+                ]
+                resolve(result)
             }
             
             viewController.config = config
