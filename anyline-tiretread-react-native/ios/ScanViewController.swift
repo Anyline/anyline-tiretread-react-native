@@ -55,14 +55,6 @@ class ScanViewController: UIViewController {
         self.scannerViewController = nil
     
     }
-    
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .landscape
-    }
-
-    override var shouldAutorotate: Bool {
-        return true
-    }
 
 }
 
