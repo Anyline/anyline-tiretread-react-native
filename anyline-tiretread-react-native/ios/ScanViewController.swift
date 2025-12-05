@@ -62,9 +62,15 @@ class ScanViewController: UIViewController {
 private extension ScanViewController {
 
     private func setupTireTreadScanView() {
-        
+        guard let config = config, !config.isEmpty else {
+            let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005, userInfo: [NSLocalizedDescriptionKey: "Scan configuration is missing or empty"])
+            onResultError?(nsError)
+            self.dismiss(animated: true)
+            return
+        }
+
         self.scannerViewController = TireTreadScanViewKt.TireTreadScanView(
-                        config: config!,
+                        config: config,
                         onScanAborted: onScanAborted,
                         onScanProcessCompleted: onUploadCompleted,
                         callback: handleScanEvent
