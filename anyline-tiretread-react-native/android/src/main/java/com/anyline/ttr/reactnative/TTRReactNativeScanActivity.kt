@@ -75,7 +75,6 @@ class TTRReactNativeScanActivity : AppCompatActivity() {
     uuid?.let {
       // Store camera direction for retrieval if needed
       TTRReactNativeCallbackManager.setCameraDirection(scanCameraDirection.name)
-      // Pass camera direction to callback
       TTRReactNativeCallbackManager.getCallback()?.onResultSuccess(it, scanCameraDirection.name)
     }
 
