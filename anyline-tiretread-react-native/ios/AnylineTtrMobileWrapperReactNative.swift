@@ -20,32 +20,33 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
     }
 
     @objc(initTireTread:withResolver:withRejecter:)
-    func initTireTread(licenseKey: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func initTireTread(licenseKey: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         DispatchQueue.main.async {
             do {
-              try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
+                try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
                 resolve("Initialization successful")
             } catch {
-                let nsError = error as NSError
-                reject(String(nsError.code), nsError.localizedDescription, nsError)
+                let (code, message) = ErrorExtractor.extract(from: error)
+                reject(code, message, nil)
             }
         }
     }
 
     @objc(startTireTreadScanActivity:tireWidth:withResolver:withRejecter:)
-    func startTireTreadScanActivity(config: String, tireWidth:Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func startTireTreadScanActivity(config: String, tireWidth: Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.main.sync {
             guard let currentViewController = RCTPresentedViewController() else {
-                reject("1005", "Activity does not exist", nil)
+                reject(ErrorCode.NO_ACTIVITY, "Activity does not exist", nil)
                 return
             }
-            
+
             let viewController = ScanViewController()
-            
+
             viewController.onResultError = { error in
-                reject(String(error.code), error.localizedDescription, error)
+                let code = error.userInfo["errorCode"] as? String ?? ErrorCode.UNKNOWN
+                reject(code, error.localizedDescription, nil)
             }
-            
+
             viewController.onResultSuccess = { uuid, cameraDirection in
                 let result: [String: Any] = [
                     "uuid": uuid,
@@ -53,70 +54,62 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                 ]
                 resolve(result)
             }
-            
+
             viewController.config = config
             viewController.modalPresentationStyle = .fullScreen
             currentViewController.present(viewController, animated: true, completion: nil)
         }
     }
-      
+
     @objc(getTreadDepthReportResult:withResolver:withRejecter:)
     func getTreadDepthReportResult(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .background).async {
             do {
-            try AnylineTireTreadSdk.shared.getTreadDepthReportResult(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
-                guard let self = self else { return }
-
-                switch(response) {
+                try AnylineTireTreadSdk.shared.getTreadDepthReportResult(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { response in
+                    switch(response) {
                     case let response as ResponseSuccess<TreadDepthResult>:
                         resolve(response.data.toJson())
-                        break;
                     case let response as ResponseError<TreadDepthResult>:
-                        reject(response.errorCode, response.errorMessage, nil)
-                        break;
+                        let code = response.errorCode ?? ErrorCode.UNKNOWN
+                        let message = response.errorMessage ?? "Unknown error occurred"
+                        reject(code, message, nil)
                     case let response as ResponseException<TreadDepthResult>:
-                        reject(nil, response.exception.description(), nil)
-                        break;
+                        let (code, message) = ErrorExtractor.extract(from: response.exception)
+                        reject(code, message, nil)
                     default:
-                        // This state cannot be reached
-                        break;
-                }
-            })
+                        reject(ErrorCode.UNKNOWN, "Unexpected response type", nil)
+                    }
+                })
             } catch {
-                let nsError = error as NSError
-                reject(String(nsError.code), nsError.localizedDescription, nsError)
+                let (code, message) = ErrorExtractor.extract(from: error)
+                reject(code, message, nil)
             }
         }
     }
 
     @objc(getHeatMap:withResolver:withRejecter:)
     func getHeatMap(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-    
-        do {
-          try AnylineTireTreadSdk.shared.getHeatmap(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
-              guard let self = self else { return }
-
-              switch(response) {
-                  case let response as ResponseSuccess<Heatmap>:
-                      resolve(response.data.url)
-                      break;
-                  case let response as ResponseError<Heatmap>:
-                      let message = response.errorMessage ?? "Unknown error"
-                      reject(response.errorCode, message, nil)
-                      break;
-                  case let response as ResponseException<Heatmap>:
-                      let exceptionMessage = "Unable to get heatmap result: " + (response.exception.message ?? "Unknown exception")
-                      reject("EXCEPTION", exceptionMessage, nil)
-                      break;
-                  default:
-                      // This state cannot be reached
-                      break;
-              }
-          })
-        } catch {
-            let nsError = error as NSError
-            reject(String(nsError.code), nsError.localizedDescription, nsError)
+        DispatchQueue.global(qos: .background).async {
+            do {
+                try AnylineTireTreadSdk.shared.getHeatmap(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { response in
+                    switch(response) {
+                    case let response as ResponseSuccess<Heatmap>:
+                        resolve(response.data.url)
+                    case let response as ResponseError<Heatmap>:
+                        let code = response.errorCode ?? ErrorCode.UNKNOWN
+                        let message = response.errorMessage ?? "Unknown error"
+                        reject(code, message, nil)
+                    case let response as ResponseException<Heatmap>:
+                        let (code, message) = ErrorExtractor.extract(from: response.exception)
+                        reject(code, message, nil)
+                    default:
+                        reject(ErrorCode.UNKNOWN, "Unexpected response type", nil)
+                    }
+                })
+            } catch {
+                let (code, message) = ErrorExtractor.extract(from: error)
+                reject(code, message, nil)
+            }
         }
     }
-
 }

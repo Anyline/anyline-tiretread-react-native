@@ -314,12 +314,12 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
         }
       } catch (e: SdkLicenseKeyInvalidException) {
         promise.reject("E_LICENSE_KEY_INVALID", e.message)
+      } catch (e: SdkLicenseKeyForbiddenException) {
+        promise.reject("E_LICENSE_KEY_FORBIDDEN", e.message)
+      } catch (e: NoConnectionException) {
+        promise.reject("E_NO_CONNECTION", e.message)
       } catch (e: Exception) {
         promise.reject("E_INITIALIZATION_FAILED", e.message)
-      } catch (e: SdkLicenseKeyForbiddenException) {
-          promise.reject("E_LICENSE_KEY_INVALID", e.message)
-      } catch (e: NoConnectionException) {
-          promise.reject("E_INITIALIZATION_FAILED", e.message)
       }
     }.start()
   }

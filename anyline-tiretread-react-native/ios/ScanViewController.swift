@@ -53,23 +53,28 @@ class ScanViewController: UIViewController {
         self.onResultSuccess = nil
         self.resetVolumeButtonObserver()
         self.scannerViewController = nil
-    
     }
-
 }
 
 // MARK: - Private Actions
 private extension ScanViewController {
 
     private func setupTireTreadScanView() {
-        
+        guard let config = config, !config.isEmpty else {
+            let nsError = ErrorExtractor.toNSError(code: ErrorCode.CONFIG_MISSING, numericCode: ScanErrorCode.CONFIG_MISSING, message: "Scan configuration is missing or empty.")
+            onResultError?(nsError)
+            self.dismiss(animated: true)
+            return
+        }
+
         self.scannerViewController = TireTreadScanViewKt.TireTreadScanView(
-                        config: config!,
+                        config: config,
                         onScanAborted: onScanAborted,
                         onScanProcessCompleted: onUploadCompleted,
                         callback: handleScanEvent
                     ) { measurementUUID, error in
-                        let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005, userInfo: [NSLocalizedDescriptionKey: error.message ?? "Unknown error"])
+                        let (code, message) = ErrorExtractor.extract(from: error)
+                        let nsError = ErrorExtractor.toNSError(code: code, numericCode: ScanErrorCode.SETUP_FAILED, message: message)
                         self.onResultError?(nsError)
                         self.dismiss(animated: true)
                     }
@@ -82,22 +87,21 @@ private extension ScanViewController {
 
     private func addScanViewControllerAsChild() {
         guard let scannerViewController = scannerViewController else {
-            if let onResultError = self.onResultError {
-                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occured."]))
-            }
+            let nsError = ErrorExtractor.toNSError(code: ErrorCode.UNKNOWN, numericCode: ScanErrorCode.UNKNOWN, message: "Unknown error occurred.")
+            onResultError?(nsError)
             self.dismiss(animated: true)
             return
         }
         addChild(scannerViewController)
         view.addSubview(scannerViewController.view)
-        
+
         NSLayoutConstraint.activate([
             scannerViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
             scannerViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             scannerViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scannerViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
+
         scannerViewController.didMove(toParent: self)
     }
 
@@ -125,12 +129,8 @@ private extension ScanViewController {
             if TireTreadScanner.companion.instance.isScanning {
                 TireTreadScanner.companion.instance.stopScanning()
             } else {
-                if (TireTreadScanner.companion.instance.captureDistanceStatus == DistanceStatus.ok)
-                {
+                if (TireTreadScanner.companion.instance.captureDistanceStatus == DistanceStatus.ok) {
                     TireTreadScanner.companion.instance.startScanning()
-                }
-                else {
-                    // Notify user to move the phone to the correct position before starting
                 }
             }
         }
@@ -148,15 +148,13 @@ private extension ScanViewController {
                     "cameraDirection": CameraDirectionHelper.cameraDirectionToString(scanCameraDirection)
                 ]
                 AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
-                break
 
-            case let event as OnScanStopped:
+            case _ as OnScanStopped:
                 let eventData: [String: Any] = [
                     "type": "scanStopped",
                     "measurementUUID": currentMeasurementUUID ?? ""
                 ]
                 AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
-                break
 
             case let event as OnImageUploaded:
                 let eventData: [String: Any] = [
@@ -166,75 +164,53 @@ private extension ScanViewController {
                     "total": event.total
                 ]
                 AnylineTtrMobileWrapperReactNative.sendEvent("TireTreadScanEvent", body: eventData)
-                break
 
             default:
                 break
         }
     }
-    
-    func onScanAborted(uuid: String?) {
-        if let onResultError = self.onResultError {
-            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Scan was aborted by the user."]))
-        }
-        self.dismiss(animated: true)
-    }
-    
-    func onUploadAborted(uuid: String?) {
-        if let onResultError = self.onResultError {
-            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1003, userInfo: [NSLocalizedDescriptionKey : "The upload was aborted."]))
-        }
-        self.dismiss(animated: true)
-    }
-    
-    func onUploadFailed(uuid: String?, exception: KotlinException) {
-        if let onResultError = self.onResultError {
-            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1004, userInfo: [NSLocalizedDescriptionKey : exception.description()]))
-        }
-        self.dismiss(animated: true)
-    }
-    
-    func onUploadCompleted(uuid: String?) {
-        // On upload complete, we should check for Results.
 
-        // the "shouldRequestTireIdFeedback" is only intended for feedback and
-        // does not need to be implemented
+    func onScanAborted(uuid: String?) {
+        let nsError = ErrorExtractor.toNSError(code: ErrorCode.SCAN_ABORTED, numericCode: ScanErrorCode.SCAN_ABORTED, message: "Scan was aborted by the user.")
+        onResultError?(nsError)
+        self.dismiss(animated: true)
+    }
+
+    func onUploadAborted(uuid: String?) {
+        let nsError = ErrorExtractor.toNSError(code: ErrorCode.UPLOAD_ABORTED, numericCode: ScanErrorCode.UPLOAD_ABORTED, message: "The upload was aborted.")
+        onResultError?(nsError)
+        self.dismiss(animated: true)
+    }
+
+    func onUploadFailed(uuid: String?, exception: KotlinException) {
+        let (code, message) = ErrorExtractor.extract(from: exception)
+        let nsError = ErrorExtractor.toNSError(code: code, numericCode: ScanErrorCode.UPLOAD_FAILED, message: message)
+        onResultError?(nsError)
+        self.dismiss(animated: true)
+    }
+
+    func onUploadCompleted(uuid: String?) {
         if let uuid = uuid {
-            if let onResultSuccess = self.onResultSuccess {
-                onResultSuccess(uuid, scanCameraDirection)
-            }
+            onResultSuccess?(uuid, scanCameraDirection)
         } else {
-            if let onResultError = self.onResultError {
-                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occured."]))
-            }
+            let nsError = ErrorExtractor.toNSError(code: ErrorCode.UNKNOWN, numericCode: ScanErrorCode.UNKNOWN, message: "Unknown error occurred.")
+            onResultError?(nsError)
         }
         self.dismiss(animated: true)
     }
-    
+
     func onFocusFound(uuid: String?) {
     }
-    
+
     func onScanStart(uuid: String?) {
     }
-    
+
     func onScanStop(uuid: String?) {
     }
 
     func onImageUploaded(uuid: String?, uploaded: Int32, total: Int32) {
     }
 
-    /// Called when the distance has changed.
-    ///
-    /// - Parameters:
-    ///   - uuid: The UUID associated with the distance change.
-    ///   - previousStatus: The previous distance status.
-    ///   - newStatus: The new distance status.
-    ///   - previousDistance: The previous distance value.
-    ///   - newDistance: The new distance value.
-    ///
-    /// Note: The distance values are provided in millimeters if the metric system is selected (`UserDefaultsManager.shared.imperialSystem = false`), and in inches if the imperial system is selected (`UserDefaultsManager.shared.imperialSystem = true`).
     func onDistanceChanged(uuid: String?, previousStatus: DistanceStatus, newStatus: DistanceStatus, previousDistance: Float, newDistance: Float) {
-        
     }
 }
-
