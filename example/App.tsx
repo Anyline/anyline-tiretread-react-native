@@ -316,10 +316,10 @@ export default function App() {
       )}
       <Text style={styles.text}>{`Init Result: ${initResult}`}</Text>
       <Text style={styles.text}>{`MeasurementUuid: ${scanResult}`}</Text>
+      <Text style={styles.text}>{`Scan Result: ${reportResult}`}</Text>
       {scanDirection && (
         <Text style={styles.text}>{`Camera Direction: ${scanDirection}`}</Text>
       )}
-      <Text style={styles.text}>{`Scan Result: ${reportResult}`}</Text>
       {error && <Text style={styles.errorText}>{error}</Text>}
       {heatmapUrl && (
         <View style={styles.heatmapContainer}>

@@ -25,12 +25,13 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
             do {
               try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
                 resolve("Initialization successful")
-            } catch let error as NSError {
-                reject(String(error.code), error.localizedDescription, error)
+            } catch {
+                let nsError = error as NSError
+                reject(String(nsError.code), nsError.localizedDescription, nsError)
             }
         }
     }
-    
+
     @objc(startTireTreadScanActivity:tireWidth:withResolver:withRejecter:)
     func startTireTreadScanActivity(config: String, tireWidth:Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.main.sync {
@@ -45,8 +46,12 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                 reject(String(error.code), error.localizedDescription, error)
             }
             
-            viewController.onResultSuccess = { uuid in
-                resolve(uuid)
+            viewController.onResultSuccess = { uuid, cameraDirection in
+                let result: [String: Any] = [
+                    "uuid": uuid,
+                    "cameraDirection": CameraDirectionHelper.cameraDirectionToString(cameraDirection)
+                ]
+                resolve(result)
             }
             
             viewController.config = config
@@ -77,12 +82,13 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                         break;
                 }
             })
-            } catch let error as NSError {
-                reject(String(error.code), error.localizedDescription, error)
+            } catch {
+                let nsError = error as NSError
+                reject(String(nsError.code), nsError.localizedDescription, nsError)
             }
         }
     }
-    
+
     @objc(getHeatMap:withResolver:withRejecter:)
     func getHeatMap(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
     
@@ -107,9 +113,10 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                       break;
               }
           })
-        } catch let error as NSError {
-            reject(String(error.code), error.localizedDescription, error)
+        } catch {
+            let nsError = error as NSError
+            reject(String(nsError.code), nsError.localizedDescription, nsError)
         }
     }
-      
+
 }

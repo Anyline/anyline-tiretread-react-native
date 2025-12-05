@@ -18,7 +18,7 @@ class ScanViewController: UIViewController {
     private var scanCameraDirection: CameraDirection = .unknown
     private var currentMeasurementUUID: String?
 
-    var onResultSuccess: ((String) -> Void)?
+    var onResultSuccess: ((String, CameraDirection) -> Void)?
     var onResultError: ((NSError) -> Void)?
 
     var scannerViewController: UIViewController?
@@ -54,14 +54,6 @@ class ScanViewController: UIViewController {
         self.resetVolumeButtonObserver()
         self.scannerViewController = nil
     
-    }
-    
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .landscape
-    }
-
-    override var shouldAutorotate: Bool {
-        return true
     }
 
 }
@@ -204,12 +196,12 @@ private extension ScanViewController {
     
     func onUploadCompleted(uuid: String?) {
         // On upload complete, we should check for Results.
-        
+
         // the "shouldRequestTireIdFeedback" is only intended for feedback and
         // does not need to be implemented
         if let uuid = uuid {
             if let onResultSuccess = self.onResultSuccess {
-                onResultSuccess(uuid)
+                onResultSuccess(uuid, scanCameraDirection)
             }
         } else {
             if let onResultError = self.onResultError {

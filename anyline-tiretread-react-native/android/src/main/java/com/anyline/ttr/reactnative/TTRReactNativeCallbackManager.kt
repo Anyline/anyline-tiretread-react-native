@@ -1,7 +1,7 @@
 package com.anyline.ttr.reactnative
 
 interface TTRReactNativeResultCallback {
-  fun onResultSuccess(uuid: String)
+  fun onResultSuccess(uuid: String, cameraDirection: String?)
   fun onResultError(errorCode: String, errorMessage: String)
 }
 
