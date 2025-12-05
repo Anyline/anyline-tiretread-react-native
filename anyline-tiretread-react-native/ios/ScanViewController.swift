@@ -61,7 +61,7 @@ private extension ScanViewController {
 
     private func setupTireTreadScanView() {
         guard let config = config, !config.isEmpty else {
-            let nsError = ErrorExtractor.toNSError(code: ErrorCode.CONFIG_MISSING, numericCode: ScanErrorCode.CONFIG_MISSING, message: "Scan configuration is missing or empty.")
+            let nsError = ErrorExtractor.toNSError(code: ErrorCode.CONFIG_MISSING, numericCode: ScanErrorCode.SETUP_FAILED, message: "Scan configuration is missing or empty.")
             onResultError?(nsError)
             self.dismiss(animated: true)
             return

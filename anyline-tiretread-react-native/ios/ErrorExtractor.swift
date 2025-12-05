@@ -34,9 +34,43 @@ struct ErrorExtractor {
         case is NotInchStringException:
             return (ErrorCode.INVALID_INCH_STRING, "The value is not a valid inch string.")
         default:
+            // Check for SdkErrorCodeException (carries typed ErrorCode from SDK)
+            if let sdkErrorCodeException = extractSdkErrorCodeException(exception) {
+                return sdkErrorCodeException
+            }
             let message = exception.message ?? "Unknown SDK error"
             return (ErrorCode.SDK_ERROR, message)
         }
+    }
+
+    /// Try to extract code/message from SdkErrorCodeException using reflection.
+    private static func extractSdkErrorCodeException(_ exception: KotlinThrowable) -> (code: String, message: String)? {
+        let className = String(describing: type(of: exception))
+        guard className.contains("SdkErrorCodeException") else { return nil }
+
+        // Try to access errorCode property via reflection
+        let mirror = Mirror(reflecting: exception)
+        for child in mirror.children {
+            if child.label == "errorCode" {
+                let errorCodeMirror = Mirror(reflecting: child.value)
+                var code: String?
+                var message: String?
+                for prop in errorCodeMirror.children {
+                    if prop.label == "code", let c = prop.value as? String {
+                        code = c
+                    }
+                    if prop.label == "message", let m = prop.value as? String {
+                        message = m
+                    }
+                }
+                if let code = code {
+                    return (code, message ?? exception.message ?? "SDK error")
+                }
+            }
+        }
+
+        // Fallback: use exception message
+        return (ErrorCode.SDK_ERROR, exception.message ?? "SDK error")
     }
 
     /// Extract error code and message from an Error.
@@ -88,6 +122,10 @@ struct ErrorExtractor {
         }
         if className.contains("NotInchStringException") {
             return (ErrorCode.INVALID_INCH_STRING, fallbackMessage)
+        }
+        // SdkErrorCodeException - can't extract typed code from class name alone, but preserve the message
+        if className.contains("SdkErrorCodeException") {
+            return (ErrorCode.SDK_ERROR, fallbackMessage)
         }
 
         return (ErrorCode.SDK_ERROR, fallbackMessage)
