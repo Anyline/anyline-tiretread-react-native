@@ -100,12 +100,6 @@ def addReactNativeMavenRepo(RepositoryHandler repositories) {
 android {
   if (supportsNamespace()) {
     namespace "com.anyline.ttr.reactnative"
-
-    sourceSets {
-      main {
-        manifest.srcFile "src/main/AndroidManifestNew.xml"
-      }
-    }
   }
 
   packagingOptions {
