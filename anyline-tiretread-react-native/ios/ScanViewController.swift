@@ -195,7 +195,7 @@ private extension ScanViewController {
     
     func onUploadFailed(uuid: String?, exception: KotlinException) {
         if let onResultError = self.onResultError {
-            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1004, userInfo: [NSLocalizedDescriptionKey : exception.description()]))
+            onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1004, userInfo: [NSLocalizedDescriptionKey : exception.message ?? "Upload failed"]))
         }
         self.dismiss(animated: true)
     }

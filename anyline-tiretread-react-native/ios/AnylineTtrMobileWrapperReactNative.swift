@@ -26,8 +26,8 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
               try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
                 resolve("Initialization successful")
             } catch {
-                let nsError = error as NSError
-                reject(String(nsError.code), nsError.localizedDescription, nsError)
+                let (code, message) = ErrorExtractor.extract(from: error)
+                reject(code, message, nil)
             }
         }
     }
@@ -83,8 +83,8 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                 }
             })
             } catch {
-                let nsError = error as NSError
-                reject(String(nsError.code), nsError.localizedDescription, nsError)
+                let (code, message) = ErrorExtractor.extract(from: error)
+                reject(code, message, nil)
             }
         }
     }
@@ -114,9 +114,8 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
               }
           })
         } catch {
-            let nsError = error as NSError
-            reject(String(nsError.code), nsError.localizedDescription, nsError)
+            let (code, message) = ErrorExtractor.extract(from: error)
+            reject(code, message, nil)
         }
     }
-
 }
