@@ -10,10 +10,17 @@ example/android/build/
 example/android/app/build/
 example/ios/build/
 example/ios/Pods/
+example/ios/Podfile.lock
 example/ios/DerivedData/
 anyline-tiretread-react-native/android/build/
 anyline-tiretread-react-native/ios/build/
 anyline-tiretread-react-native/ios/Pods/
+
+# Gradle
+gradle-wrapper.jar
+
+# Android
+debug.keystore
 
 # macOS
 .DS_Store
