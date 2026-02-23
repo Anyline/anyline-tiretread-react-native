@@ -102,6 +102,12 @@ export function removeScanEventListener(
   subscription.remove();
 }
 
+export type OrientationLock = 'landscape' | 'portrait' | 'none';
+
+export function setOrientationLock(orientation: OrientationLock): void {
+  AnylineTtrMobileWrapperReactNative.setOrientationLock(orientation);
+}
+
 export function scanWithEvents(
   config: string,
   tireWidth?: number,

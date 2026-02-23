@@ -39,6 +39,6 @@ Pod::Spec.new do |s|
    end
   end  
   
-  s.dependency 'AnylineTireTreadSdk', '~> 13.1'
+  s.dependency 'AnylineTireTreadSdk', '~> 14.0'
   
 end
