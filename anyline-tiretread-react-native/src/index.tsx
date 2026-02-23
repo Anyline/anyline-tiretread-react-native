@@ -102,7 +102,11 @@ export function removeScanEventListener(
   subscription.remove();
 }
 
-export type OrientationLock = 'landscape' | 'portrait' | 'none';
+export enum OrientationLock {
+  Landscape = 'landscape',
+  Portrait = 'portrait',
+  None = 'none',
+}
 
 export function setOrientationLock(orientation: OrientationLock): void {
   AnylineTtrMobileWrapperReactNative.setOrientationLock(orientation);
