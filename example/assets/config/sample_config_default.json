@@ -1,7 +1,5 @@
 {
   "uiConfig": {
-    "useDefaultUi": true,
-    "useDefaultHaptic": true,
     "measurementSystem": "Metric",
     "scanSpeed": "Fast",
     "distanceIndicatorConfig": {

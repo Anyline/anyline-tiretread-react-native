@@ -26,6 +26,18 @@ class ScanViewController: UIViewController {
 
     var config: String?
 
+    // MARK: - Orientation Lock
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        switch AnylineTtrMobileWrapperReactNative.orientationLock {
+        case "landscape": return .landscape
+        default: return .all
+        }
+    }
+
+    override var shouldAutorotate: Bool {
+        return true
+    }
+
     // MARK: - Init
     init() {
         super.init(nibName: nil, bundle: nil)

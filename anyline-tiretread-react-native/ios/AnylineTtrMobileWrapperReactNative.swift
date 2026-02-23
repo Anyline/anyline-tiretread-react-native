@@ -4,6 +4,7 @@ import AnylineTireTreadSdk
 class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
 
     static var sharedInstance: AnylineTtrMobileWrapperReactNative?
+    static var orientationLock: String = "none"
 
     override init() {
         super.init()
@@ -17,6 +18,11 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
     @objc
     static func sendEvent(_ name: String, body: Any) {
         sharedInstance?.sendEvent(withName: name, body: body)
+    }
+
+    @objc(setOrientationLock:)
+    func setOrientationLock(_ orientation: String) {
+        AnylineTtrMobileWrapperReactNative.orientationLock = orientation
     }
 
     @objc(initTireTread:withResolver:withRejecter:)

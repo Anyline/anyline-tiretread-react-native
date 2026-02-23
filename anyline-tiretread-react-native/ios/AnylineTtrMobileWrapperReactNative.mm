@@ -3,6 +3,8 @@
 
 @interface RCT_EXTERN_MODULE(AnylineTtrMobileWrapperReactNative, RCTEventEmitter)
 
+RCT_EXTERN_METHOD(setOrientationLock:(NSString)orientation)
+
 RCT_EXTERN_METHOD(initTireTread:(NSString)licenseKey
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)

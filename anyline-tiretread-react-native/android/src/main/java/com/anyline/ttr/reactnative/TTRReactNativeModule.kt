@@ -325,6 +325,11 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun setOrientationLock(orientation: String) {
+    TTRReactNativeModule.orientationLock = orientation
+  }
+
+  @ReactMethod
   fun startTireTreadScanActivity(config: String, tireWidth: Integer, promise: Promise) {
     val currentActivity = reactApplicationContext.currentActivity
     if (currentActivity != null) {
@@ -430,5 +435,7 @@ class TTRReactNativeModule(reactContext: ReactApplicationContext) :
 
     // Static reference for event sending from activities
     var moduleInstance: TTRReactNativeModule? = null
+
+    var orientationLock: String = "none"
   }
 }

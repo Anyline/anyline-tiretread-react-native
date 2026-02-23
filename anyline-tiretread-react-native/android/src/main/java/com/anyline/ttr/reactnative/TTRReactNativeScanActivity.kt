@@ -1,5 +1,6 @@
 package com.anyline.ttr.reactnative
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
@@ -26,6 +27,11 @@ class TTRReactNativeScanActivity : AppCompatActivity() {
   @OptIn(AnylineInternalFeature::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    requestedOrientation = when (TTRReactNativeModule.orientationLock) {
+      "landscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+      else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    }
 
     var ttrView = TireTreadScanView(this)
 
