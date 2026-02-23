@@ -104,7 +104,6 @@ export function removeScanEventListener(
 
 export enum OrientationLock {
   Landscape = 'landscape',
-  Portrait = 'portrait',
   None = 'none',
 }
 

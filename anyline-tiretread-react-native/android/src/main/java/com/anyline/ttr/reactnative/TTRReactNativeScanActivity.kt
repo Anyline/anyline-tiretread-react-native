@@ -30,7 +30,6 @@ class TTRReactNativeScanActivity : AppCompatActivity() {
 
     requestedOrientation = when (TTRReactNativeModule.orientationLock) {
       "landscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-      "portrait" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
       else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 

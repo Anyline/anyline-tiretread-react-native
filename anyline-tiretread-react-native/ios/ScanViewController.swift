@@ -30,7 +30,6 @@ class ScanViewController: UIViewController {
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         switch AnylineTtrMobileWrapperReactNative.orientationLock {
         case "landscape": return .landscape
-        case "portrait": return .portrait
         default: return .all
         }
     }
