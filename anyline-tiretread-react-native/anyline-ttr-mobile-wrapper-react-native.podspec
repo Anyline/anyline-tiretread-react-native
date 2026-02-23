@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => "16.4" }
-  s.source       = { :git => "https://gitlab.com/anylinecom/ttr/mobile/wrappers/anyline-ttr-mobile-wrapper-react-native.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/Anyline/anyline-tiretread-react-native.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 

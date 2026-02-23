@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {
@@ -143,7 +136,7 @@ export default function App() {
       {
         title: 'Camera Permission',
         message:
-          'App needs access to your camera so you can take awesome pictures.',
+          'App needs access to your camera to scan tires.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',

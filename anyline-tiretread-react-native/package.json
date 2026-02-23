@@ -43,14 +43,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/anylinecom/ttr/mobile/wrappers/anyline-ttr-mobile-wrapper-react-native.git"
+    "url": "git+https://github.com/Anyline/anyline-tiretread-react-native.git"
   },
   "author": "Anyline GmbH <<daniel.albertini@anyline.com>> (https://anyline.com)",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
-    "url": "https://gitlab.com/anylinecom/ttr/mobile/wrappers/anyline-ttr-mobile-wrapper-react-native/issues"
+    "url": "https://github.com/Anyline/anyline-tiretread-react-native/issues"
   },
-  "homepage": "https://gitlab.com/anylinecom/ttr/mobile/wrappers/anyline-ttr-mobile-wrapper-react-native#readme",
+  "homepage": "https://github.com/Anyline/anyline-tiretread-react-native#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
