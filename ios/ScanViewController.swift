@@ -75,9 +75,8 @@ private extension ScanViewController {
                         onScanProcessCompleted: onUploadCompleted,
                         callback: handleScanEvent
                     ) { measurementUUID, error in
-                        self.onResultError!(error as! NSError)
-                        
-                        print("Initialization failed: \(error)")
+                        let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005, userInfo: [NSLocalizedDescriptionKey: error.message ?? "Unknown error"])
+                        self.onResultError?(nsError)
                         self.dismiss(animated: true)
                     }
         

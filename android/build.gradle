@@ -105,7 +105,7 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-  implementation "io.anyline.tiretread.sdk:shared:13.+"
+  implementation "io.anyline.tiretread.sdk:shared:14.+"
 
   implementation 'androidx.compose.ui:ui-tooling-preview:1.2.0'
 
