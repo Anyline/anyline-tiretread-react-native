@@ -39,6 +39,6 @@ Pod::Spec.new do |s|
    end
   end  
   
-  s.vendored_frameworks = 'ios/AnylineTireTreadSdk/*.{xcframework}'
+  s.dependency 'AnylineTireTreadSdk', '~> 14.0'
   
 end
