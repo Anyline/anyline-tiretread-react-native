@@ -1,5 +1,5 @@
 {
-  "name": "anyline-ttr-react-native",
+  "name": "anyline-tire-tread-react-native-module",
   "version": "0.6.0",
   "description": "React Native SDK for Anyline Tire Tread scanning and depth measurement",
   "main": "lib/commonjs/index",
