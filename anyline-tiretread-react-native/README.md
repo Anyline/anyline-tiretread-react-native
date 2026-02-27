@@ -1,7 +1,7 @@
 # Anyline Tire Tread React Native SDK
 
-[![npm version](https://img.shields.io/npm/v/anyline-ttr-react-native.svg)](https://www.npmjs.com/package/anyline-ttr-react-native)
-[![license](https://img.shields.io/npm/l/anyline-ttr-react-native.svg)](./LICENSE.md)
+[![npm version](https://img.shields.io/npm/v/anyline-tire-tread-react-native-module.svg)](https://www.npmjs.com/package/anyline-tire-tread-react-native-module)
+[![license](https://img.shields.io/npm/l/anyline-tire-tread-react-native-module.svg)](./LICENSE.md)
 
 React Native SDK for Anyline Tire Tread scanning and depth measurement.
 
@@ -23,9 +23,9 @@ Reference: [Anyline Tire Tread SDK documentation](https://documentation.anyline.
 ### Installation
 
 ```sh
-yarn add anyline-ttr-react-native
+yarn add anyline-tire-tread-react-native-module
 # or
-npm install anyline-ttr-react-native
+npm install anyline-tire-tread-react-native-module
 ```
 
 ### Android Setup
@@ -57,7 +57,7 @@ import {
   isDeviceSupported,
   setOrientationLock,
   OrientationLock,
-} from 'anyline-ttr-react-native';
+} from 'anyline-tire-tread-react-native-module';
 ```
 
 ### Initialization

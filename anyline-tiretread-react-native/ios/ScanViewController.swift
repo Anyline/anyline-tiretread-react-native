@@ -1,6 +1,6 @@
 //
 //  ScanViewController.swift
-//  anyline-ttr-react-native
+//  anyline-tire-tread-react-native-module
 //
 //  Created by Daniel Albertini on 30.04.24.
 //
