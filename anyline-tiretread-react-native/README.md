@@ -1,4 +1,4 @@
-# anyline-ttr-react-native
+# Anyline Tire Tread SDK React Native Wrapper
 
 [![npm version](https://img.shields.io/npm/v/anyline-ttr-react-native.svg)](https://www.npmjs.com/package/anyline-ttr-react-native)
 [![license](https://img.shields.io/npm/l/anyline-ttr-react-native.svg)](./LICENSE.md)
