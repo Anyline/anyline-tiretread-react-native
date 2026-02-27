@@ -1,7 +1,6 @@
 {
   "uiConfig": {
     "measurementSystem": "Imperial",
-    "scanSpeed": "Fast",
     "distanceIndicatorConfig": {
       "visible": true,
       "textOk": "Distance OK",
@@ -17,10 +16,6 @@
       "textOk": "Tap to start recording",
       "textNotOkMetric": "Hold your phone around 20cm from the tire to start.",
       "textNotOkImperial": "Hold your phone around 8in from the tire to start."
-    },
-    "uploadViewConfig": {
-      "visible": true,
-      "text": "Uploading..."
     }
   }
 }
