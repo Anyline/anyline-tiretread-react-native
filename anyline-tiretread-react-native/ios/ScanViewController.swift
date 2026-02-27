@@ -95,7 +95,7 @@ private extension ScanViewController {
     private func addScanViewControllerAsChild() {
         guard let scannerViewController = scannerViewController else {
             if let onResultError = self.onResultError {
-                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occured."]))
+                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occurred."]))
             }
             self.dismiss(animated: true)
             return
@@ -217,7 +217,7 @@ private extension ScanViewController {
             }
         } else {
             if let onResultError = self.onResultError {
-                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occured."]))
+                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occurred."]))
             }
         }
         self.dismiss(animated: true)

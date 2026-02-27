@@ -1,6 +1,6 @@
 {
   "name": "anyline-ttr-react-native",
-  "version": "1.0.0",
+  "version": "0.5.1",
   "description": "Anyline TTR React Native Wrapper",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -46,7 +46,7 @@
     "type": "git",
     "url": "git+https://github.com/Anyline/anyline-tiretread-react-native.git"
   },
-  "author": "Anyline GmbH <<daniel.albertini@anyline.com>> (https://anyline.com)",
+  "author": "Anyline GmbH <daniel.albertini@anyline.com> (https://anyline.com)",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
     "url": "https://github.com/Anyline/anyline-tiretread-react-native/issues"
