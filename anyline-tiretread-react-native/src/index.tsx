@@ -46,9 +46,16 @@ export function initialize(licenseKey: string): Promise<string> {
 }
 
 export function scan(config: string, tireWidth?: number): Promise<string> {
-  const scanPromise = tireWidth !== undefined
-    ? AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(config, tireWidth)
-    : AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(config, 0);
+  const scanPromise =
+    tireWidth !== undefined
+      ? AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(
+          config,
+          tireWidth
+        )
+      : AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(
+          config,
+          0
+        );
 
   return scanPromise.then((result: any) => {
     // Handle both old format (string) and new format (object)
@@ -61,7 +68,10 @@ export function scan(config: string, tireWidth?: number): Promise<string> {
 }
 
 // Internal function that returns full scan result with metadata
-function scanInternal(config: string, tireWidth?: number): Promise<{ uuid: string; cameraDirection?: string }> {
+function scanInternal(
+  config: string,
+  tireWidth?: number
+): Promise<{ uuid: string; cameraDirection?: string }> {
   if (tireWidth !== undefined) {
     return AnylineTtrMobileWrapperReactNative.startTireTreadScanActivity(
       config,
@@ -133,7 +143,9 @@ export function scanWithEvents(
       subscription?.remove();
       return {
         measurementUUID: result.uuid,
-        cameraDirection: (result.cameraDirection as CameraDirection) || capturedCameraDirection,
+        cameraDirection:
+          (result.cameraDirection as CameraDirection) ||
+          capturedCameraDirection,
       };
     })
     .catch((error) => {

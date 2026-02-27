@@ -40,7 +40,14 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "anyline",
+    "tire",
+    "tread",
+    "scanner",
+    "tire-tread",
+    "depth-measurement",
+    "computer-vision"
   ],
   "repository": {
     "type": "git",
