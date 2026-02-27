@@ -21,10 +21,6 @@
     "uploadViewConfig": {
       "visible": true,
       "text": "Uploading..."
-    },
-    "orientationWarningConfig": {
-      "visible": true,
-      "text": "Rotate to landscape mode."
     }
   }
 }
