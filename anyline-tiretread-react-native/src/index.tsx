@@ -41,8 +41,82 @@ export interface ScanResult {
   cameraDirection?: CameraDirection;
 }
 
+export type ErrorType =
+  | 'LICENSE_ERROR'
+  | 'CONFIG_ERROR'
+  | 'NETWORK_ERROR'
+  | 'SCAN_ERROR'
+  | 'RESULT_ERROR'
+  | 'CANCELLED';
+
+const ERROR_TYPE_BY_CODE: Record<string, ErrorType> = {
+  INVALID_LICENSE: 'LICENSE_ERROR',
+  LICENSE_KEY_FORBIDDEN: 'LICENSE_ERROR',
+  SDK_NOT_VERIFIED: 'LICENSE_ERROR',
+  E_LICENSE_KEY_INVALID: 'LICENSE_ERROR',
+
+  INVALID_ARGUMENT: 'CONFIG_ERROR',
+  CONFIG_ABORT: 'CONFIG_ERROR',
+
+  NO_CONNECTION: 'NETWORK_ERROR',
+  TIMEOUT: 'NETWORK_ERROR',
+
+  INVALID_UUID: 'RESULT_ERROR',
+  RESULT_ERROR: 'RESULT_ERROR',
+  HEATMAP_ERROR: 'RESULT_ERROR',
+
+  CANCELLED: 'CANCELLED',
+  SCAN_ABORT: 'CANCELLED',
+
+  SDK_NOT_INITIALIZED: 'SCAN_ERROR',
+  SESSION_CREATION_FAILED: 'SCAN_ERROR',
+  UPLOAD_FAILED: 'SCAN_ERROR',
+  MEASUREMENT_ERROR: 'SCAN_ERROR',
+  ALREADY_RUNNING: 'SCAN_ERROR',
+  INITIALIZATION_FAILED: 'SCAN_ERROR',
+  E_INITIALIZATION_FAILED: 'SCAN_ERROR',
+  INTERNAL_ERROR: 'SCAN_ERROR',
+  UNKNOWN_ERROR: 'SCAN_ERROR',
+};
+
+function addErrorType(error: unknown): unknown {
+  if (!error || typeof error !== 'object') {
+    return error;
+  }
+
+  const errorRecord = error as {
+    code?: unknown;
+    type?: unknown;
+  };
+
+  if (typeof errorRecord.type === 'string' && errorRecord.type.length > 0) {
+    return error;
+  }
+
+  const code =
+    typeof errorRecord.code === 'string'
+      ? errorRecord.code
+      : typeof errorRecord.code === 'number'
+        ? String(errorRecord.code)
+        : undefined;
+
+  const mappedType = code ? ERROR_TYPE_BY_CODE[code] ?? 'SCAN_ERROR' : 'SCAN_ERROR';
+
+  try {
+    (errorRecord as { type: ErrorType }).type = mappedType;
+    return error;
+  } catch {
+    return {
+      ...errorRecord,
+      type: mappedType,
+    };
+  }
+}
+
 export function initialize(licenseKey: string): Promise<string> {
-  return AnylineTtrMobileWrapperReactNative.initTireTread(licenseKey);
+  return AnylineTtrMobileWrapperReactNative.initTireTread(licenseKey).catch((error: unknown) => {
+    throw addErrorType(error);
+  });
 }
 
 export function scan(config: string, tireWidth?: number): Promise<string> {
@@ -57,6 +131,8 @@ export function scan(config: string, tireWidth?: number): Promise<string> {
       return result;
     }
     return result.uuid;
+  }).catch((error: unknown) => {
+    throw addErrorType(error);
   });
 }
 
@@ -84,10 +160,14 @@ export function isDeviceSupported(): Promise<boolean> {
 export function getResult(measurementUuid: string): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.getTreadDepthReportResult(
     measurementUuid
-  );
+  ).catch((error: unknown) => {
+    throw addErrorType(error);
+  });
 }
 export function getHeatMap(measurementUuid: string): Promise<string> {
-  return AnylineTtrMobileWrapperReactNative.getHeatMap(measurementUuid);
+  return AnylineTtrMobileWrapperReactNative.getHeatMap(measurementUuid).catch((error: unknown) => {
+    throw addErrorType(error);
+  });
 }
 
 export function addScanEventListener(
@@ -138,6 +218,6 @@ export function scanWithEvents(
     })
     .catch((error) => {
       subscription?.remove();
-      throw error;
+      throw addErrorType(error);
     });
 }
