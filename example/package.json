@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "anyline-ttr-mobile-wrapper-react-native": "file:../anyline-tiretread-react-native",
+    "anyline-ttr-react-native": "file:../anyline-tiretread-react-native",
     "react": "19.0.0",
     "react-native": "0.79.0"
   },

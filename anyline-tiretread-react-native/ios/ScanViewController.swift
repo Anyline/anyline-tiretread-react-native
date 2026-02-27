@@ -1,6 +1,6 @@
 //
 //  ScanViewController.swift
-//  anyline-ttr-mobile-wrapper-react-native
+//  anyline-ttr-react-native
 //
 //  Created by Daniel Albertini on 30.04.24.
 //

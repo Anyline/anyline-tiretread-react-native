@@ -1,6 +1,6 @@
 //
 //  CameraDirectionHelper.swift
-//  anyline-ttr-mobile-wrapper-react-native
+//  anyline-ttr-react-native
 //
 //  Helper class to determine camera direction based on device orientation
 //

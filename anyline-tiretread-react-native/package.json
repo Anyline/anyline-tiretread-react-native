@@ -1,5 +1,5 @@
 {
-  "name": "anyline-ttr-mobile-wrapper-react-native",
+  "name": "anyline-ttr-react-native",
   "version": "1.0.0",
   "description": "Anyline TTR React Native Wrapper",
   "main": "lib/commonjs/index",
@@ -33,7 +33,9 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build ios/build lib",
     "prepack": "bob build",
-    "release": "release-it"
+    "release": "release-it",
+    "release:internal:check": "npm run typecheck && npm pack --dry-run",
+    "release:internal": "node ./scripts/publish-internal.mjs"
   },
   "keywords": [
     "react-native",

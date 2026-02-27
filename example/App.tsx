@@ -19,7 +19,7 @@ import {
   isDeviceSupported,
   type CameraDirection,
   type ScanEvent,
-} from 'anyline-ttr-mobile-wrapper-react-native';
+} from 'anyline-ttr-react-native';
 
 const defaultConfig = JSON.stringify(
   require('./assets/config/sample_config_default.json')
