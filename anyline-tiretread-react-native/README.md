@@ -41,31 +41,6 @@ Run `pod install` after installing the package:
 cd ios && pod install
 ```
 
-## Internal GitLab Release (Playground)
-
-Use this for internal testing before public npm release.
-
-### Local Publish To GitLab Package Registry
-```sh
-cd anyline-tiretread-react-native
-npm ci
-npm version --no-git-tag-version 1.0.1-internal.0
-export INTERNAL_NPM_REGISTRY="https://gitlab.com/api/v4/projects/<PROJECT_ID>/packages/npm/"
-export NPM_TOKEN="<TOKEN_WITH_write_package_registry>"
-npm run release:internal
-```
-
-### Local Install From GitLab Package Registry
-```sh
-echo "//gitlab.com/api/v4/projects/<PROJECT_ID>/packages/npm/:_authToken=<TOKEN_WITH_read_package_registry>" > .npmrc
-npm install anyline-ttr-react-native@internal --registry "https://gitlab.com/api/v4/projects/<PROJECT_ID>/packages/npm/"
-```
-
-### GitLab CI Publish
-This repository includes a manual GitLab pipeline job `publish_internal_npm` in [`.gitlab-ci.yml`](../.gitlab-ci.yml).
-It publishes with tag `internal`, uses `CI_JOB_TOKEN`, and stamps a unique prerelease version:
-`<base-version>-internal.<CI_PIPELINE_IID>`.
-
 ## Usage
 
 ### Importing
