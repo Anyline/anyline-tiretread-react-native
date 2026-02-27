@@ -10,7 +10,7 @@ See the [LICENSE.md](./LICENSE.md) file for licensing information.
 ### Requirements
 - Stable internet connection
 - Flash capability
-- Camera functionality (recommended: 1080p with autofocus)
+- Camera functionality (required: 1080p with autofocus)
 
 #### Android
 - Android 6.0+ (Marshmallow) - API level 23+
@@ -19,10 +19,6 @@ See the [LICENSE.md](./LICENSE.md) file for licensing information.
 - iOS 13+
 
 Reference: [Anyline Tire Tread SDK documentation](https://documentation.anyline.com/tiretreadsdk-component/latest/index.html)
-
-### React Native Compatibility
-- React: `>=18.2.0 <20`
-- React Native: `>=0.73.0`
 
 ### Installation
 Install the package from npm:
