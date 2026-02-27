@@ -5,15 +5,6 @@
 
 React Native SDK for Anyline Tire Tread scanning and depth measurement.
 
-## Features
-
-- Tire tread depth scanning with real-time event callbacks
-- Tread depth reports and heatmap visualizations
-- Configurable scan UI (tooltips, distance indicators, progress bars)
-- Orientation lock support
-- Device compatibility checks
-- Android and iOS support
-
 ## Getting Started
 
 ### Requirements
