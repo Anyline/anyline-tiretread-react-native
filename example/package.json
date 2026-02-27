@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "anyline-ttr-react-native": "file:../anyline-tiretread-react-native",
+    "anyline-tire-tread-react-native-module": "file:../anyline-tiretread-react-native",
     "react": "19.0.0",
     "react-native": "0.79.0"
   },

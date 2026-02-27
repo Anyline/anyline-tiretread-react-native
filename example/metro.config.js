@@ -13,7 +13,7 @@ const config = {
   ],
   resolver: {
     alias: {
-      'anyline-ttr-react-native': path.resolve(__dirname, '..', 'anyline-tiretread-react-native'),
+      'anyline-tire-tread-react-native-module': path.resolve(__dirname, '..', 'anyline-tiretread-react-native'),
     },
     nodeModulesPaths: [
       path.resolve(__dirname, 'node_modules'),
