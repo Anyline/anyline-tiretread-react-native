@@ -25,6 +25,23 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
         AnylineTtrMobileWrapperReactNative.orientationLock = orientation
     }
 
+    private func legacyScanErrorCode(for error: NSError) -> String {
+        if error.domain != "TTRSCANDOMAIN" {
+            return error.domain.isEmpty ? String(error.code) : error.domain
+        }
+
+        switch error.code {
+        case 1002:
+            return "SCAN_ABORT"
+        case 1003, 1004:
+            return "UPLOAD_FAILED"
+        case 1005:
+            return "UPLOAD_FAILED"
+        default:
+            return "UNKNOWN_ERROR"
+        }
+    }
+
     @objc(initTireTread:withResolver:withRejecter:)
     func initTireTread(licenseKey: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
         DispatchQueue.main.async {
@@ -48,8 +65,9 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
             
             let viewController = ScanViewController()
             
-            viewController.onResultError = { error in
-                reject(String(error.code), error.localizedDescription, error)
+            viewController.onResultError = { [weak self] error in
+                let mappedCode = self?.legacyScanErrorCode(for: error) ?? String(error.code)
+                reject(mappedCode, error.localizedDescription, error)
             }
             
             viewController.onResultSuccess = { uuid, cameraDirection in

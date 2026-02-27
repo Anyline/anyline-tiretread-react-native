@@ -11,18 +11,26 @@ See the [LICENSE.md](./LICENSE.md) file for licensing information.
 - A device with a camera (minimum 1080p resolution with autofocus)
 
 #### Android
-- Android 6.0+ (Marshmallow) - API level 23+
+- Android 8.0+ (Oreo) - API level 26+
 
 #### iOS
-- iOS 13+
+- iOS 16.4+
 - Add Camera Permissions to `Info.plist`
 
+### React Native Compatibility
+- React: `>=18.2.0 <20`
+- React Native: `>=0.73.0`
+
 ### Installation
-Add the plugin source to your project using yarn or npm:
+Install the package from npm:
 
 ```sh
-yarn add $(path_to_anyline-ttr-mobile-wrapper-react-native)
+yarn add anyline-ttr-mobile-wrapper-react-native
+# or
+npm install anyline-ttr-mobile-wrapper-react-native
 ```
+
+This package contains native code and is not supported in Expo Go. Use a development build (or bare React Native).
 
 ### Android Setup
 Add the custom maven repository to your `build.gradle`:
@@ -76,7 +84,7 @@ isDeviceSupported()
 Use `scanWithEvents` to start a scan and receive real-time events:
 
 ```typescript
-const config = JSON.stringify(require('./assets/config/sample_config.json'));
+const config = JSON.stringify(require('./assets/config/sample_config_default.json'));
 
 scanWithEvents(config, undefined, (event) => {
   console.log('Scan event:', event);
@@ -126,7 +134,13 @@ The scanning activity is configured via a JSON object. For complete documentatio
 - [Customizing the Default UI](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/customizing.html)
 
 ## Example
-See the [example](../example) directory for a working integration.
+See the example app in the repository:
+- https://github.com/Anyline/anyline-tiretread-react-native/tree/main/example
+
+## Troubleshooting
+- If Android build fails to resolve `io.anyline.tiretread.sdk:shared`, verify the Anyline Maven repository is configured in your project's repositories.
+- If iOS reports the native module is missing, run `cd ios && pod install`, then rebuild the app.
+- If you run in Expo Go, the native module will not load. Use a development build instead.
 
 ## Support
 For issues or questions, please open a support request using the [Anyline Helpdesk](https://support.anyline.com).
