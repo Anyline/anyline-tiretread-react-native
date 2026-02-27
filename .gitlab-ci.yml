@@ -12,5 +12,5 @@ publish_internal_npm:
     - cd anyline-tiretread-react-native
     - npm ci
     - npm run release:internal:check
-    - node -e "const fs=require('fs');const p=require('./package.json');const base=p.version.split('-')[0];p.version=`${base}-internal.${process.env.CI_PIPELINE_IID}`;fs.writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n');console.log('Publishing',p.name,p.version);"
+    - node -e 'const fs=require("fs");const p=require("./package.json");const base=p.version.split("-")[0];const iid=process.env.CI_PIPELINE_IID||"0";p.version=`${base}-internal.${iid}`;fs.writeFileSync("./package.json",JSON.stringify(p,null,2)+"\n");console.log("Publishing",p.name,p.version);'
     - npm run release:internal
