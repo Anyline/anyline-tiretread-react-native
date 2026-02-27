@@ -33,8 +33,6 @@ yarn add anyline-ttr-mobile-wrapper-react-native
 npm install anyline-ttr-mobile-wrapper-react-native
 ```
 
-This package contains native code and is not supported in Expo Go. Use a development build (or bare React Native).
-
 ### Android Setup
 Add the custom maven repository to your `build.gradle`:
 ```gradle
@@ -135,15 +133,6 @@ The scanning activity is configured via a JSON object. For complete documentatio
 - [Scan Configuration](https://documentation.anyline.com/tiretreadsdk-component/latest/scan-configuration.html)
 - [Default UI Overview](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/overview.html)
 - [Customizing the Default UI](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/customizing.html)
-
-## Example
-See the example app in the repository:
-- https://github.com/Anyline/anyline-tiretread-react-native/tree/main/example
-
-## Troubleshooting
-- If Android build fails to resolve `io.anyline.tiretread.sdk:shared`, verify the Anyline Maven repository is configured in your project's repositories.
-- If iOS reports the native module is missing, run `cd ios && pod install`, then rebuild the app.
-- If you run in Expo Go, the native module will not load. Use a development build instead.
 
 ## Support
 For issues or questions, please open a support request using the [Anyline Helpdesk](https://support.anyline.com).
