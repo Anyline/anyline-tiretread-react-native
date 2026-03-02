@@ -119,7 +119,7 @@ export default function App() {
             });
         } else {
           setError(
-            'Minimum iOS version required is 16.4 or Android device is not supported'
+            'Minimum iOS version required is 13.0 or Android device is not supported'
           );
         }
       })

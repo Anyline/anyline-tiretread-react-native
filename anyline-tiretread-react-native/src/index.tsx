@@ -89,7 +89,7 @@ export function isDeviceSupported(): Promise<boolean> {
   if (Platform.OS !== 'ios') {
     return AnylineTtrMobileWrapperReactNative.isAndroidDeviceSupported();
   }
-  return Promise.resolve(parseFloat(Platform.Version) >= 16.4);
+  return Promise.resolve(parseFloat(Platform.Version) >= 13.0);
 }
 export function getResult(measurementUuid: string): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.getTreadDepthReportResult(
