@@ -1,6 +1,6 @@
-# Anyline TTR React Native Example App
+# Anyline Tire Tread React Native Example App
 
-Example app demonstrating the Anyline Tire Tread SDK React Native wrapper.
+Example app demonstrating the Anyline Tire Tread SDK React Native plugin.
 
 ## Setup
 

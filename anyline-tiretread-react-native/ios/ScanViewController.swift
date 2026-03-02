@@ -1,6 +1,6 @@
 //
 //  ScanViewController.swift
-//  anyline-ttr-mobile-wrapper-react-native
+//  anyline-tire-tread-react-native-module
 //
 //  Created by Daniel Albertini on 30.04.24.
 //
@@ -8,13 +8,11 @@
 import UIKit
 import AVFoundation
 import CoreHaptics
-import MediaPlayer
 import AnylineTireTreadSdk
 
 class ScanViewController: UIViewController {
 
     // MARK: - Private Var's & Let's
-    private var volumeButtonObserver: VolumeButtonObserver?
     private var scanCameraDirection: CameraDirection = .unknown
     private var currentMeasurementUUID: String?
 
@@ -51,21 +49,13 @@ class ScanViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTireTreadScanView()
-        setupVolumeView()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        self.setupVolumeButtonObserver()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.onResultError = nil
         self.onResultSuccess = nil
-        self.resetVolumeButtonObserver()
         self.scannerViewController = nil
-    
     }
 
 }
@@ -95,7 +85,7 @@ private extension ScanViewController {
     private func addScanViewControllerAsChild() {
         guard let scannerViewController = scannerViewController else {
             if let onResultError = self.onResultError {
-                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occured."]))
+                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occurred."]))
             }
             self.dismiss(animated: true)
             return
@@ -113,41 +103,10 @@ private extension ScanViewController {
         scannerViewController.didMove(toParent: self)
     }
 
-    func setupVolumeView() {
-        let volumeView = MPVolumeView(frame: CGRect(x: -1000, y: -1000, width: 0, height: 0))
-        view.addSubview(volumeView)
-    }
 }
 
-// MARK: - AVAudioSession for Volume buttons
+// MARK: - Private Actions (continued)
 private extension ScanViewController {
-    func setupVolumeButtonObserver() {
-        volumeButtonObserver = VolumeButtonObserver()
-        volumeButtonObserver?.onVolumeButtonPressed = { [weak self] in
-            self?.handleVolumeButtonPressed()
-        }
-    }
-
-    func resetVolumeButtonObserver() {
-        self.volumeButtonObserver = nil
-    }
-
-    private func handleVolumeButtonPressed() {
-        if TireTreadScanner.companion.isInitialized {
-            if TireTreadScanner.companion.instance.isScanning {
-                TireTreadScanner.companion.instance.stopScanning()
-            } else {
-                if (TireTreadScanner.companion.instance.captureDistanceStatus == DistanceStatus.ok)
-                {
-                    TireTreadScanner.companion.instance.startScanning()
-                }
-                else {
-                    // Notify user to move the phone to the correct position before starting
-                }
-            }
-        }
-    }
-
     private func handleScanEvent(event: ScanEvent) {
         switch(event) {
             case let event as OnScanStarted:
@@ -217,7 +176,7 @@ private extension ScanViewController {
             }
         } else {
             if let onResultError = self.onResultError {
-                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occured."]))
+                onResultError(NSError(domain: "TTRSCANDOMAIN", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Unknown error occurred."]))
             }
         }
         self.dismiss(animated: true)

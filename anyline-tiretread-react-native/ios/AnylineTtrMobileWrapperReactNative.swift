@@ -32,7 +32,8 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
               try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
                 resolve("Initialization successful")
             } catch {
-                let nsError = error as NSError
+                let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 reject(String(nsError.code), nsError.localizedDescription, nsError)
             }
         }
@@ -89,7 +90,8 @@ class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
                 }
             })
             } catch {
-                let nsError = error as NSError
+                let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 reject(String(nsError.code), nsError.localizedDescription, nsError)
             }
         }

@@ -1,7 +1,7 @@
 {
-  "name": "anyline-ttr-mobile-wrapper-react-native",
-  "version": "1.0.0",
-  "description": "Anyline TTR React Native Wrapper",
+  "name": "anyline-tire-tread-react-native-module",
+  "version": "0.6.0",
+  "description": "React Native SDK for Anyline Tire Tread scanning and depth measurement",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
@@ -12,7 +12,6 @@
     "lib",
     "android",
     "ios",
-    "cpp",
     "*.podspec",
     "!ios/build",
     "!android/build",
@@ -32,20 +31,29 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
+    "clean": "del-cli android/build ios/build lib",
     "prepack": "bob build",
-    "release": "release-it"
+    "release": "release-it",
+    "release:internal:check": "npm run typecheck && npm pack --dry-run",
+    "release:internal": "node ./scripts/publish-internal.mjs"
   },
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "anyline",
+    "tire",
+    "tread",
+    "scanner",
+    "tire-tread",
+    "depth-measurement",
+    "computer-vision"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Anyline/anyline-tiretread-react-native.git"
   },
-  "author": "Anyline GmbH <<daniel.albertini@anyline.com>> (https://anyline.com)",
+  "author": "Anyline GmbH (https://anyline.com)",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
     "url": "https://github.com/Anyline/anyline-tiretread-react-native/issues"
@@ -58,7 +66,7 @@
     "@react-native/eslint-config": "^0.73.1",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^29.5.5",
-    "@types/react": "^18.2.44",
+    "@types/react": "*",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
@@ -69,9 +77,6 @@
     "release-it": "^15.0.0",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
-  },
-  "resolutions": {
-    "@types/react": "^18.2.44"
   },
   "peerDependencies": {
     "react": "*",

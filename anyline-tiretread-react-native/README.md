@@ -1,37 +1,45 @@
-# Anyline TTR Mobile Wrapper React Native Plugin
+# Anyline Tire Tread React Native SDK
 
-The Anyline TTR Mobile Wrapper for React Native enables integration with the Anyline Tire Tread SDK, allowing for tire tread scanning and depth report generation in your React Native applications.
+[![npm version](https://img.shields.io/npm/v/anyline-tire-tread-react-native-module.svg)](https://www.npmjs.com/package/anyline-tire-tread-react-native-module)
+[![license](https://img.shields.io/npm/l/anyline-tire-tread-react-native-module.svg)](./LICENSE.md)
 
-## License
-See the [LICENSE.md](./LICENSE.md) file for licensing information.
+React Native SDK for Anyline Tire Tread scanning and depth measurement.
 
 ## Getting Started
 
 ### Requirements
-- A device with a camera (minimum 1080p resolution with autofocus)
+- Stable internet connection
+- Flash capability
+- Camera functionality (required: 1080p with autofocus)
 
 #### Android
 - Android 6.0+ (Marshmallow) - API level 23+
 
 #### iOS
 - iOS 13+
-- Add Camera Permissions to `Info.plist`
+
+Reference: [Anyline Tire Tread SDK documentation](https://documentation.anyline.com/tiretreadsdk-component/latest/index.html)
 
 ### Installation
-Add the plugin source to your project using yarn or npm:
 
 ```sh
-yarn add $(path_to_anyline-ttr-mobile-wrapper-react-native)
+yarn add anyline-tire-tread-react-native-module
+# or
+npm install anyline-tire-tread-react-native-module
 ```
 
 ### Android Setup
+
 Add the custom maven repository to your `build.gradle`:
+
 ```gradle
 maven { url "https://europe-maven.pkg.dev/anyline-ttr-sdk/maven" }
 ```
 
 ### iOS Setup
+
 Run `pod install` after installing the package:
+
 ```sh
 cd ios && pod install
 ```
@@ -39,6 +47,7 @@ cd ios && pod install
 ## Usage
 
 ### Importing
+
 ```typescript
 import {
   initialize,
@@ -48,45 +57,48 @@ import {
   isDeviceSupported,
   setOrientationLock,
   OrientationLock,
-} from 'anyline-ttr-mobile-wrapper-react-native';
+} from 'anyline-tire-tread-react-native-module';
 ```
 
 ### Initialization
+
 ```typescript
-initialize('your_license_key')
-  .then((response) => {
-    console.log('Initialization successful:', response);
-  })
-  .catch((error) => {
-    console.error('Initialization failed:', error);
-  });
+try {
+  const response = await initialize('your_license_key');
+  console.log('Initialization successful:', response);
+} catch (error) {
+  console.error('Initialization failed:', error);
+}
 ```
 
 ### Device Compatibility Check
+
 ```typescript
-isDeviceSupported()
-  .then((supported) => {
-    if (!supported) {
-      console.warn('Device not supported');
-    }
-  });
+const supported = await isDeviceSupported();
+if (!supported) {
+  console.warn('Device not supported');
+}
 ```
 
 ### Scanning
+
 Use `scanWithEvents` to start a scan and receive real-time events:
 
 ```typescript
-const config = JSON.stringify(require('./assets/config/sample_config.json'));
+const config = JSON.stringify(require('./assets/config/sample_config_default.json'));
 
-scanWithEvents(config, undefined, (event) => {
-  console.log('Scan event:', event);
-})
-  .then(({ measurementUUID, cameraDirection }) => {
-    console.log('Scan complete:', measurementUUID, cameraDirection);
-  })
-  .catch((error) => {
-    console.error('Scanning failed:', error);
-  });
+try {
+  const { measurementUUID, cameraDirection } = await scanWithEvents(
+    config,
+    undefined,
+    (event) => {
+      console.log('Scan event:', event);
+    }
+  );
+  console.log('Scan complete:', measurementUUID, cameraDirection);
+} catch (error) {
+  console.error('Scanning failed:', error);
+}
 ```
 
 **Parameters:**
@@ -97,25 +109,25 @@ scanWithEvents(config, undefined, (event) => {
 **Returns:** `Promise<ScanResult>` with `measurementUUID` and `cameraDirection`.
 
 ### Getting Results
+
 ```typescript
-getResult(measurementUUID)
-  .then((result) => {
-    console.log('Report:', result);
-  })
-  .catch((error) => {
-    console.error('Getting report failed:', error);
-  });
+try {
+  const result = await getResult(measurementUUID);
+  console.log('Report:', result);
+} catch (error) {
+  console.error('Getting report failed:', error);
+}
 ```
 
 ### Getting Heatmap
+
 ```typescript
-getHeatMap(measurementUUID)
-  .then((heatmapUrl) => {
-    console.log('Heatmap URL:', heatmapUrl);
-  })
-  .catch((error) => {
-    console.error('Getting heatmap failed:', error);
-  });
+try {
+  const heatmapUrl = await getHeatMap(measurementUUID);
+  console.log('Heatmap URL:', heatmapUrl);
+} catch (error) {
+  console.error('Getting heatmap failed:', error);
+}
 ```
 
 ## Configuration
@@ -125,8 +137,21 @@ The scanning activity is configured via a JSON object. For complete documentatio
 - [Default UI Overview](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/overview.html)
 - [Customizing the Default UI](https://documentation.anyline.com/tiretreadsdk-component/latest/default-ui/customizing.html)
 
-## Example
-See the [example](../example) directory for a working integration.
+## Troubleshooting
+
+### Camera permissions not granted
+Ensure your app requests camera permissions before starting a scan. On Android, add `android.permission.CAMERA` to your `AndroidManifest.xml`. On iOS, add `NSCameraUsageDescription` to your `Info.plist`.
+
+### Scan fails with autofocus error
+The SDK requires a camera with autofocus capability. Devices without autofocus (e.g. some tablets) are not supported. Use `isDeviceSupported()` to check before scanning.
+
+### Network timeout during result retrieval
+The SDK requires a stable internet connection to upload frames and retrieve results. Ensure the device has connectivity and can reach `anyline.com` endpoints.
 
 ## Support
+
 For issues or questions, please open a support request using the [Anyline Helpdesk](https://support.anyline.com).
+
+## License
+
+See the [LICENSE.md](./LICENSE.md) file for licensing information.

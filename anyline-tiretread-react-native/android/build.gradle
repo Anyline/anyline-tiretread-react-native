@@ -16,13 +16,9 @@ buildscript {
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.2.0"
 }
-apply plugin: 'com.google.cloud.artifactregistry.gradle-plugin'
 
 allprojects {
-    apply plugin: "com.google.cloud.artifactregistry.gradle-plugin"
-
     repositories {
         google()
         mavenCentral()
@@ -142,19 +138,13 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-  implementation "io.anyline.tiretread.sdk:shared:14.+"
-
-  implementation 'androidx.compose.ui:ui-tooling-preview:1.2.0'
+  implementation "io.anyline.tiretread.sdk:shared:14.0.1"
 
   implementation 'androidx.core:core-ktx:1.13.0'
   implementation 'androidx.compose.ui:ui:1.6.6'
   implementation 'androidx.compose.material:material:1.6.6'
   implementation 'androidx.compose.ui:ui-tooling-preview:1.6.6'
-  implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
   implementation 'androidx.activity:activity-compose:1.9.0'
-
   implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.0"
-  implementation "androidx.lifecycle:lifecycle-common-java8:2.7.0"
-  implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
   implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 }
