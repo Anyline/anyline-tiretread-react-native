@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.anyline.ttr.reactnative">
+  package="com.anyline.ttr.reactnative">
 
   <uses-feature
     android:name="android.hardware.camera"
@@ -14,9 +14,5 @@
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.VIBRATE" />
-
-  <application>
-    <activity android:name="com.anyline.ttr.reactnative.TTRReactNativeScanActivity" android:theme="@style/AppTheme.FullScreen"/>
-  </application>
 
 </manifest>

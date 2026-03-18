@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 buildscript {
   def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["AnylineTtrMobileWrapperReactNative_kotlinVersion"]
 
@@ -8,7 +10,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.android.tools.build:gradle:7.2.1"
+    classpath "com.android.tools.build:gradle:8.7.3"
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
 }
@@ -18,22 +20,23 @@ plugins {
     id 'kotlin-android'
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url "https://europe-maven.pkg.dev/anyline-ttr-sdk/maven" }
-        addReactNativeMavenRepo(delegate)
-    }
-}
-
 def isNewArchitectureEnabled() {
   return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
 }
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
+
+  react {
+    // Keep codegen/new-arch enabled, but scope JS scanning to wrapper sources only.
+    jsRootDir = file("../src/specs")
+    libraryName = "AnylineTtrMobileWrapperReactNativeSpec"
+    codegenJavaPackageName = "com.anyline.ttr.reactnative"
+  }
 }
+
+def packageJson = new JsonSlurper().parse(file("../package.json"))
+def packageVersion = packageJson.version.toString()
 
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["AnylineTtrMobileWrapperReactNative_" + name]
@@ -52,6 +55,23 @@ def supportsNamespace() {
 }
 
 def resolveReactNativeAndroidDir() {
+  // Prefer host app React Native sources when this wrapper is built as an included project.
+  if (rootProject != null && rootProject.projectDir != null) {
+    def rootCandidates = [
+      new File(rootProject.projectDir, "node_modules/react-native/android"),
+      new File(rootProject.projectDir, "node_modules/react-native"),
+      new File(rootProject.projectDir, "../node_modules/react-native/android"),
+      new File(rootProject.projectDir, "../node_modules/react-native"),
+      new File(rootProject.projectDir, "../../node_modules/react-native/android"),
+      new File(rootProject.projectDir, "../../node_modules/react-native"),
+    ]
+    for (candidate in rootCandidates) {
+      if (candidate.exists()) {
+        return candidate
+      }
+    }
+  }
+
   if (rootProject.ext.has("reactNativeAndroidRoot")) {
     def configuredDir = file(rootProject.ext.get("reactNativeAndroidRoot"))
     if (configuredDir.exists()) {
@@ -104,16 +124,21 @@ android {
     }
   }
 
-  packagingOptions {
-    exclude 'META-INF/LICENSE.md'
+  packaging {
+    resources.excludes += 'META-INF/LICENSE.md'
   }
 
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
+  buildFeatures {
+    buildConfig true
+  }
+
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
-
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+    buildConfigField "String", "WRAPPER_VERSION", "\"${packageVersion}\""
   }
 
   buildTypes {
@@ -122,29 +147,45 @@ android {
     }
   }
 
-  lintOptions {
+  lint {
     disable "GradleCompatible"
   }
 
+  testOptions {
+    unitTests {
+      includeAndroidResources = true
+    }
+  }
+
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+
+  sourceSets.main {
+    java {
+      if (isNewArchitectureEnabled()) {
+        srcDirs += ["src/newarch/java"]
+      } else {
+        srcDirs += ["src/oldarch/java"]
+      }
+    }
   }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-  implementation "com.facebook.react:react-native:+"
+  // Wrapper compiles against RN bridge types; new-arch plugin resolves concrete runtime artifacts.
+  compileOnly "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
 
-  implementation "io.anyline.tiretread.sdk:shared:14.0.1"
+  implementation("io.anyline.tiretread.sdk:shared-android:15.0.0")
 
-  implementation 'androidx.core:core-ktx:1.13.0'
-  implementation 'androidx.compose.ui:ui:1.6.6'
-  implementation 'androidx.compose.material:material:1.6.6'
-  implementation 'androidx.compose.ui:ui-tooling-preview:1.6.6'
-  implementation 'androidx.activity:activity-compose:1.9.0'
-  implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.0"
-  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
+  testImplementation "com.facebook.react:react-android:0.76.9"
+  testImplementation "junit:junit:4.13.2"
+  testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+  testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0"
+  testImplementation "io.mockk:mockk:1.13.13"
 }

@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">example</string>
+    <string name="app_name">Anyline TTR React Native</string>
+    <string name="build_config_package">com.anyline.ttr.test.example</string>
 </resources>
