@@ -1,130 +1,142 @@
 import AnylineTireTreadSdk
+import Foundation
 
 @objc(AnylineTtrMobileWrapperReactNative)
-class AnylineTtrMobileWrapperReactNative: RCTEventEmitter {
+class AnylineTtrMobileWrapperReactNative: NSObject, TTRPresenter {
+  private lazy var impl: TTRModuleImpl = {
+    let impl = TTRModuleImpl()
+    impl.presenter = self
+    return impl
+  }()
 
-    static var sharedInstance: AnylineTtrMobileWrapperReactNative?
-    static var orientationLock: String = "none"
+  @objc
+  class func requiresMainQueueSetup() -> Bool {
+    return false
+  }
 
-    override init() {
-        super.init()
-        AnylineTtrMobileWrapperReactNative.sharedInstance = self
+  // MARK: - TTRPresenter
+
+  func presentedViewController() -> UIViewController? {
+    RCTPresentedViewController()
+  }
+
+  // MARK: - Bridge Methods
+
+  @objc(initialize:withResolver:withRejecter:)
+  func initialize(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.initialize(options: options) { result in
+      self.resolveOnMain(resolve, result)
     }
+  }
 
-    override func supportedEvents() -> [String]! {
-        return ["TireTreadScanEvent"]
+  @objc(scan:withResolver:withRejecter:)
+  func scan(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    DispatchQueue.main.async { [self] in
+      self.impl.scan(options: options) { result in
+        self.resolveOnMain(resolve, result)
+      }
     }
+  }
 
-    @objc
-    static func sendEvent(_ name: String, body: Any) {
-        sharedInstance?.sendEvent(withName: name, body: body)
+  @objc(getResult:withResolver:withRejecter:)
+  func getResult(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.getResult(options: options) { result in
+      self.resolveOnMain(resolve, result)
     }
+  }
 
-    @objc(setOrientationLock:)
-    func setOrientationLock(_ orientation: String) {
-        AnylineTtrMobileWrapperReactNative.orientationLock = orientation
+  @objc(getHeatmap:withResolver:withRejecter:)
+  func getHeatmap(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.getHeatmap(options: options) { result in
+      self.resolveOnMain(resolve, result)
     }
+  }
 
-    @objc(initTireTread:withResolver:withRejecter:)
-    func initTireTread(licenseKey: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
-        DispatchQueue.main.async {
-            do {
-              try AnylineTireTreadSdk.shared.doInit(licenseKey: licenseKey)
-                resolve("Initialization successful")
-            } catch {
-                let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005,
-                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
-                reject(String(nsError.code), nsError.localizedDescription, nsError)
-            }
-        }
+  @objc(setTestingConfig:withResolver:withRejecter:)
+  func setTestingConfig(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.setTestingConfig(options: options) { result in
+      self.resolveOnMain(resolve, result)
     }
+  }
 
-    @objc(startTireTreadScanActivity:tireWidth:withResolver:withRejecter:)
-    func startTireTreadScanActivity(config: String, tireWidth:Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.main.sync {
-            guard let currentViewController = RCTPresentedViewController() else {
-                reject("1005", "Activity does not exist", nil)
-                return
-            }
-            
-            let viewController = ScanViewController()
-            
-            viewController.onResultError = { error in
-                reject(String(error.code), error.localizedDescription, error)
-            }
-            
-            viewController.onResultSuccess = { uuid, cameraDirection in
-                let result: [String: Any] = [
-                    "uuid": uuid,
-                    "cameraDirection": CameraDirectionHelper.cameraDirectionToString(cameraDirection)
-                ]
-                resolve(result)
-            }
-            
-            viewController.config = config
-            viewController.modalPresentationStyle = .fullScreen
-            currentViewController.present(viewController, animated: true, completion: nil)
-        }
+  @objc(clearTestingConfig:withRejecter:)
+  func clearTestingConfig(resolve: @escaping RCTPromiseResolveBlock, reject _: @escaping RCTPromiseRejectBlock) {
+    impl.clearTestingConfig { result in
+      self.resolveOnMain(resolve, result)
     }
-      
-    @objc(getTreadDepthReportResult:withResolver:withRejecter:)
-    func getTreadDepthReportResult(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.global(qos: .background).async {
-            do {
-            try AnylineTireTreadSdk.shared.getTreadDepthReportResult(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
-                guard let self = self else { return }
+  }
 
-                switch(response) {
-                    case let response as ResponseSuccess<TreadDepthResult>:
-                        resolve(response.data.toJson())
-                        break;
-                    case let response as ResponseError<TreadDepthResult>:
-                        reject(response.errorCode, response.errorMessage, nil)
-                        break;
-                    case let response as ResponseException<TreadDepthResult>:
-                        reject(nil, response.exception.description(), nil)
-                        break;
-                    default:
-                        // This state cannot be reached
-                        break;
-                }
-            })
-            } catch {
-                let nsError = NSError(domain: "TTRSCANDOMAIN", code: 1005,
-                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
-                reject(String(nsError.code), nsError.localizedDescription, nsError)
-            }
-        }
+  @objc(sendCommentFeedback:withResolver:withRejecter:)
+  func sendCommentFeedback(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.sendCommentFeedback(options: options) { result in
+      self.resolveOnMain(resolve, result)
     }
+  }
 
-    @objc(getHeatMap:withResolver:withRejecter:)
-    func getHeatMap(measurementUuid: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-    
-        do {
-          try AnylineTireTreadSdk.shared.getHeatmap(measurementUuid: measurementUuid, timeoutSeconds: 30, onResponse: { [weak self] response in
-              guard let self = self else { return }
-
-              switch(response) {
-                  case let response as ResponseSuccess<Heatmap>:
-                      resolve(response.data.url)
-                      break;
-                  case let response as ResponseError<Heatmap>:
-                      let message = response.errorMessage ?? "Unknown error"
-                      reject(response.errorCode, message, nil)
-                      break;
-                  case let response as ResponseException<Heatmap>:
-                      let exceptionMessage = "Unable to get heatmap result: " + (response.exception.message ?? "Unknown exception")
-                      reject("EXCEPTION", exceptionMessage, nil)
-                      break;
-                  default:
-                      // This state cannot be reached
-                      break;
-              }
-          })
-        } catch {
-            let nsError = error as NSError
-            reject(String(nsError.code), nsError.localizedDescription, nsError)
-        }
+  @objc(sendTreadDepthResultFeedback:withResolver:withRejecter:)
+  func sendTreadDepthResultFeedback(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.sendTreadDepthResultFeedback(options: options) { result in
+      self.resolveOnMain(resolve, result)
     }
+  }
 
+  @objc(sendTireIdFeedback:withResolver:withRejecter:)
+  func sendTireIdFeedback(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.sendTireIdFeedback(options: options) { result in
+      self.resolveOnMain(resolve, result)
+    }
+  }
+
+  @objc(getSdkVersion:withRejecter:)
+  func getSdkVersion(resolve: @escaping RCTPromiseResolveBlock, reject _: @escaping RCTPromiseRejectBlock) {
+    resolve(impl.getSdkVersion())
+  }
+
+  @objc(getWrapperVersion:withRejecter:)
+  func getWrapperVersion(resolve: @escaping RCTPromiseResolveBlock, reject _: @escaping RCTPromiseRejectBlock) {
+    resolve(impl.getWrapperVersion())
+  }
+
+  // MARK: - Thread Safety
+
+  /// SDK callbacks arrive on Kotlin's Dispatchers.IO thread.
+  /// React Native requires resolve() on a known serial queue.
+  /// This matches Android's resolveOnJs pattern.
+  private func resolveOnMain(_ resolve: @escaping RCTPromiseResolveBlock, _ value: Any) {
+    DispatchQueue.main.async {
+      resolve(value)
+    }
+  }
 }

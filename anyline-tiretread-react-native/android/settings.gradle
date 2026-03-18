@@ -1,0 +1,36 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == 'com.android.library') {
+                useModule("com.android.tools.build:gradle:8.7.3")
+            }
+            if (requested.id.id == 'kotlin-android') {
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
+            }
+        }
+    }
+}
+
+rootProject.name = 'anyline-ttr-react-native'
+
+dependencyResolutionManagement {
+    repositories {
+        maven { url 'https://europe-maven.pkg.dev/anyline-ttr-sdk/maven' }
+        google()
+        mavenCentral()
+    }
+}
+
+gradle.allprojects {
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module('com.facebook.react:react-native') using module('com.facebook.react:react-android:0.76.9')
+        }
+    }
+    ext.set('minSdkVersion', 23)
+}
