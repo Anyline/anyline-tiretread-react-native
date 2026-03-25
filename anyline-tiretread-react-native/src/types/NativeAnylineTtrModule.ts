@@ -1,5 +1,3 @@
-import { TurboModuleRegistry } from 'react-native';
-import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import type { Heatmap } from '../generated/heatmap_payload';
 import type {
   MeasurementInfo,
@@ -39,7 +37,7 @@ type TireIdFeedbackArgs = {
   tireId: string;
 };
 
-export interface Spec extends TurboModule {
+export interface Spec {
   initialize(options: InitializeArgs): Promise<SdkResult<null>>;
   scan(options: ScanArgs): Promise<ScanOutcome>;
   getResult(options: ResultArgs): Promise<SdkResult<TreadDepthResult>>;
@@ -52,7 +50,3 @@ export interface Spec extends TurboModule {
   getSdkVersion(): Promise<string>;
   getWrapperVersion(): Promise<string>;
 }
-
-export default TurboModuleRegistry.getEnforcing<Spec>(
-  'AnylineTtrMobileWrapperReactNative'
-);

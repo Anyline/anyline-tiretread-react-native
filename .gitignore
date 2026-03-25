@@ -40,3 +40,4 @@ xcuserdata/
 .env*
 !.env.example
 .xcode.env.local
+.bundle/

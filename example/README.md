@@ -18,13 +18,13 @@ Minimal React Native app demonstrating the [@anyline/tire-tread-react-native-mod
 npm install
 ```
 
-2. Create `.env.local` from the template:
+2. Create `.env` from the template:
 
 ```sh
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-3. Edit `.env.local` and set your license key:
+3. Edit `.env` and set your license key:
 
 ```dotenv
 TTR_LICENSE_KEY=your-license-key-here
