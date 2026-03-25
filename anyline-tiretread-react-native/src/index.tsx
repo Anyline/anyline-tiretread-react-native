@@ -1,4 +1,8 @@
-import NativeAnylineTtrModule from './specs/NativeAnylineTtrModule';
+import { NativeModules, Platform } from 'react-native';
+import type { Spec } from './types/NativeAnylineTtrModule';
+
+const NativeAnylineTtrModule =
+  NativeModules.AnylineTtrMobileWrapperReactNative as Spec | undefined;
 
 if (!NativeAnylineTtrModule) {
   throw new Error(
@@ -7,7 +11,7 @@ if (!NativeAnylineTtrModule) {
       '- You have not run "pod install" after installing the package\n' +
       '- You need to rebuild the native project (npx react-native run-android / run-ios)\n' +
       '- The native project has not picked up React Native autolinking yet; try reinstalling dependencies and rebuilding the app\n' +
-      '- You are running in Expo Go which does not support native modules (use a dev client instead)\n'
+      Platform.select({ ios: '- You are running in Expo Go which does not support native modules (use a dev client instead)\n', default: '' })
   );
 }
 

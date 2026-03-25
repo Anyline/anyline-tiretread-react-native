@@ -20,21 +20,6 @@ plugins {
     id 'kotlin-android'
 }
 
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
-}
-
-if (isNewArchitectureEnabled()) {
-  apply plugin: "com.facebook.react"
-
-  react {
-    // Keep codegen/new-arch enabled, but scope JS scanning to wrapper sources only.
-    jsRootDir = file("../src/specs")
-    libraryName = "AnylineTtrMobileWrapperReactNativeSpec"
-    codegenJavaPackageName = "com.anyline.ttr.reactnative"
-  }
-}
-
 def packageJson = new JsonSlurper().parse(file("../package.json"))
 def packageVersion = packageJson.version.toString()
 
@@ -119,7 +104,7 @@ android {
 
     sourceSets {
       main {
-        manifest.srcFile "src/main/AndroidManifestNew.xml"
+        manifest.srcFile "src/main/AndroidManifestLibrary.xml"
       }
     }
   }
@@ -137,7 +122,6 @@ android {
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
-    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
     buildConfigField "String", "WRAPPER_VERSION", "\"${packageVersion}\""
   }
 
@@ -161,22 +145,12 @@ android {
     sourceCompatibility JavaVersion.VERSION_17
     targetCompatibility JavaVersion.VERSION_17
   }
-
-  sourceSets.main {
-    java {
-      if (isNewArchitectureEnabled()) {
-        srcDirs += ["src/newarch/java"]
-      } else {
-        srcDirs += ["src/oldarch/java"]
-      }
-    }
-  }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-  // Wrapper compiles against RN bridge types; new-arch plugin resolves concrete runtime artifacts.
+  // Wrapper uses the classic React Native bridge and compiles only against RN bridge types.
   compileOnly "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
   implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"

@@ -139,12 +139,16 @@ class TTRModuleImpl {
         wrapperInfo: WrapperInfo.ReactNative(version: wrapperVersionProvider.currentVersion())
       )
     ) { sdkResult in
-      completion(Bridge.shared.unit(sdkResult: sdkResult))
+      let bridged = Bridge.shared.unit(sdkResult: sdkResult)
+      ttrDebugLog("TTRModuleImpl.initialize completed bridgedType=\(String(describing: type(of: bridged)))")
+      completion(bridged)
     }
   }
 
   func scan(options: NSDictionary, completion: @escaping (Any) -> Void) {
+    ttrDebugLog("TTRModuleImpl.scan start")
     if scanCompletion != nil {
+      ttrDebugLog("TTRModuleImpl.scan already-running short-circuit")
       let error = SdkError(
         code: .alreadyRunning,
         type: ErrorType.companion.fromCode(code: .alreadyRunning),
@@ -158,6 +162,7 @@ class TTRModuleImpl {
     let configJson = options["configJson"] as? String
 
     guard let vc = presenter?.presentedViewController() else {
+      ttrDebugLog("TTRModuleImpl.scan missing presenter view controller")
       let error = SdkError(
         code: .invalidArgument,
         type: ErrorType.companion.fromCode(code: .invalidArgument),
@@ -169,11 +174,14 @@ class TTRModuleImpl {
     }
 
     let optionsJson = options["optionsJson"] as? String
+    ttrDebugLog("TTRModuleImpl.scan presenter=\(String(describing: type(of: vc))) configBytes=\(configJson?.count ?? 0) optionsBytes=\(optionsJson?.count ?? 0)")
     scanCompletion = completion
 
-    scanner.scan(from: vc, configJson: configJson, optionsJson: optionsJson) { [weak self] outcome in
-      guard let completion = self?.consumeScanCompletion() else { return }
-      completion(self?.sanitizedOutcomeMap(outcome) ?? outcome.toMap())
+    scanner.scan(from: vc, configJson: configJson, optionsJson: optionsJson) { [self] outcome in
+      ttrDebugLog("TTRModuleImpl.scan callback outcome=\(String(describing: type(of: outcome))) raw=\(outcome.toMap())")
+      guard let completion = consumeScanCompletion() else { return }
+      ttrDebugLog("TTRModuleImpl.scan consuming completion")
+      completion(sanitizedOutcomeMap(outcome))
     }
   }
 
@@ -182,7 +190,9 @@ class TTRModuleImpl {
     let timeoutSeconds = (options["timeoutSeconds"] as? NSNumber)?.int32Value
 
     runtime.getResult(measurementUUID: measurementUUID, timeoutSeconds: timeoutSeconds) { sdkResult in
-      completion(Bridge.shared.result(sdkResult: sdkResult))
+      let bridged = Bridge.shared.result(sdkResult: sdkResult)
+      ttrDebugLog("TTRModuleImpl.getResult completed uuid=\(measurementUUID) bridgedType=\(String(describing: type(of: bridged)))")
+      completion(bridged)
     }
   }
 
@@ -191,17 +201,23 @@ class TTRModuleImpl {
     let timeoutSeconds = (options["timeoutSeconds"] as? NSNumber)?.int32Value
 
     runtime.getHeatmap(measurementUUID: measurementUUID, timeoutSeconds: timeoutSeconds) { sdkResult in
-      completion(Bridge.shared.heatmap(sdkResult: sdkResult))
+      let bridged = Bridge.shared.heatmap(sdkResult: sdkResult)
+      ttrDebugLog("TTRModuleImpl.getHeatmap completed uuid=\(measurementUUID) bridgedType=\(String(describing: type(of: bridged)))")
+      completion(bridged)
     }
   }
 
   func setTestingConfig(options: NSDictionary, completion: @escaping (Any) -> Void) {
+    ttrDebugLog("setTestingConfig start \(Self.testingConfigSummary(options))")
     testingBridge.setTestingConfig(json: Self.jsonString(from: options))
+    ttrDebugLog("setTestingConfig completed")
     completion(NSNull())
   }
 
   func clearTestingConfig(completion: @escaping (Any) -> Void) {
+    ttrDebugLog("clearTestingConfig start")
     testingBridge.clearTestingConfig()
+    ttrDebugLog("clearTestingConfig completed")
     completion(NSNull())
   }
 
@@ -273,6 +289,16 @@ class TTRModuleImpl {
   }
 
   private static let allowedOutcomeKeys: Set<String> = ["kind", "measurementUUID", "error"]
+
+  private static func testingConfigSummary(_ options: NSDictionary) -> String {
+    let frameCount = (options["framePaths"] as? [Any])?.count ?? 0
+    let distance = options["distanceMm"] ?? "nil"
+    let autostart = options["autostart"] ?? "nil"
+    let fault = options["fault"] as? NSDictionary
+    let faultCode = fault?["code"] ?? "nil"
+    let faultType = fault?["type"] ?? "nil"
+    return "frameCount=\(frameCount) distanceMm=\(distance) autostart=\(autostart) faultCode=\(faultCode) faultType=\(faultType)"
+  }
 
   private static func jsonString(from object: Any) -> String {
     guard JSONSerialization.isValidJSONObject(object),

@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - 2026-03-17
+## [1.0.0] - 2026-03-25
+
+This release marks the first stable 1.0 version of the Anyline Tire Tread React Native wrapper.
+
+### Changed
+
+- Improved compatibility across supported React Native platform versions.
+- Stabilized the native integration layer for iOS and Android.
+- Prepared the package for public 1.0 release.
+
+## [0.7.0] - 2026-03-18
 
 Complete rewrite of the Anyline Tire Tread React Native module with a new promise-based API, full TypeScript support, and Expo compatibility. This release replaces the 0.6.0 API entirely.
 
@@ -33,7 +43,6 @@ Complete rewrite of the Anyline Tire Tread React Native module with a new promis
 
 - Full TypeScript type definitions generated from the SDK schema
 - Expo config plugin for automatic camera permissions and Maven repository setup
-- TurboModule support (React Native New Architecture)
 - Feedback API: `sendCommentFeedback()`, `sendTreadDepthResultFeedback()`, `sendTireIdFeedback()`
 - `getSdkVersion()` and `getWrapperVersion()` utility functions
 - `additionalContext` with `correlationId` and `tirePosition` for fleet integration use cases
