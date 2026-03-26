@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@anyline/tire-tread-react-native-module": "1.0.0",
+    "@anyline/tire-tread-react-native-module": "file:../anyline-tiretread-react-native",
     "react": "18.3.1",
     "react-native": "0.75.5",
     "react-native-config": "^1.5.3"
