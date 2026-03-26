@@ -1,6 +1,6 @@
 {
   "name": "@anyline/tire-tread-react-native-module",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "React Native SDK for Anyline Tire Tread scanning and depth measurement",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -12,7 +12,6 @@
     "lib",
     "android",
     "ios",
-    "cpp",
     "*.podspec",
     "!ios/build",
     "!ios/.build",
@@ -101,19 +100,6 @@
   "peerDependenciesMeta": {
     "expo": {
       "optional": true
-    }
-  },
-  "codegenConfig": {
-    "name": "AnylineTtrMobileWrapperReactNativeSpec",
-    "type": "modules",
-    "jsSrcsDir": "src/specs",
-    "android": {
-      "javaPackageName": "com.anyline.ttr.reactnative"
-    },
-    "ios": {
-      "modulesProvider": {
-        "AnylineTtrMobileWrapperReactNative": "AnylineTtrMobileWrapperReactNative"
-      }
     }
   },
   "jest": {
