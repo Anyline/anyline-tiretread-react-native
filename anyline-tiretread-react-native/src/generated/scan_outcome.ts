@@ -40,6 +40,7 @@ export type ErrorCode =
   | 'RESULT_ERROR'
   | 'HEATMAP_ERROR'
   | 'TIMEOUT'
+  | 'CAMERA_PERMISSION_DENIED'
   | 'INTERNAL_ERROR'
   | 'UNKNOWN_ERROR';
 

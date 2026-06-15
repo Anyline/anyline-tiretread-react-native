@@ -52,6 +52,14 @@ internal class TTRReactNativeModuleImpl(
     scanPromise = null
   }
 
+  fun isDeviceSupported(promise: Promise) {
+    AnylineTireTread.isDeviceSupported(context.currentActivity ?: context) { result ->
+      resolveOnJs {
+        promise.resolve(BridgeValue.toWritableMap(Bridge.boolean(result)))
+      }
+    }
+  }
+
   fun initialize(options: ReadableMap, promise: Promise) {
     val licenseKey = options.getString("licenseKey")?.trim().orEmpty()
     val customTag = options.getString("customTag")?.trim().takeUnless { it.isNullOrEmpty() }

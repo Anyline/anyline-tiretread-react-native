@@ -2,6 +2,8 @@ import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  PermissionsAndroid,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -14,6 +16,7 @@ import {
   getResult,
   getSdkVersion,
   initialize,
+  isDeviceSupported,
   scan,
   type ScanOptions,
   type ScanOutcome,
@@ -69,6 +72,8 @@ export default function App(): React.JSX.Element {
   const [treadDepthResult, setTreadDepthResult] = React.useState<TreadDepthResult | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
+  const [isCheckingSupport, setIsCheckingSupport] = React.useState(false);
+  const [deviceSupportStatus, setDeviceSupportStatus] = React.useState('Not checked');
   const [isInitializing, setIsInitializing] = React.useState(false);
   const [isScanning, setIsScanning] = React.useState(false);
   const [isFetchingResult, setIsFetchingResult] = React.useState(false);
@@ -89,6 +94,29 @@ export default function App(): React.JSX.Element {
       mounted = false;
     };
   }, []);
+
+  const handleDeviceSupportPress = React.useCallback(async () => {
+    if (isCheckingSupport) return;
+
+    setIsCheckingSupport(true);
+    setDeviceSupportStatus('Checking...');
+
+    try {
+      if (Platform.OS === 'android') {
+        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+      }
+      const res = await isDeviceSupported();
+      if (res.ok) {
+        setDeviceSupportStatus(res.value ? 'Device is supported' : 'Device is NOT supported');
+      } else {
+        setDeviceSupportStatus(`${res.error.code}: ${res.error.message}`);
+      }
+    } catch (_error) {
+      setDeviceSupportStatus('Failed (unexpected error)');
+    } finally {
+      setIsCheckingSupport(false);
+    }
+  }, [isCheckingSupport]);
 
   const handleInitPress = React.useCallback(async () => {
     if (isInitialized || isInitializing) return;
@@ -178,7 +206,7 @@ export default function App(): React.JSX.Element {
 
   const canScan = isInitialized;
   const canFetchResult = isInitialized && !!measurementUUID;
-  const isBusy = isInitializing || isScanning || isFetchingResult;
+  const isBusy = isCheckingSupport || isInitializing || isScanning || isFetchingResult;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -189,6 +217,16 @@ export default function App(): React.JSX.Element {
             style={styles.headerLogo}
             resizeMode="contain"
           />
+
+          <View style={styles.actionBlock}>
+            <AppButton
+              title="Check Device Support"
+              onPress={handleDeviceSupportPress}
+              disabled={isBusy}
+              loading={isCheckingSupport}
+            />
+            <Text style={styles.actionStatus}>{deviceSupportStatus}</Text>
+          </View>
 
           <View style={styles.actionBlock}>
             <AppButton

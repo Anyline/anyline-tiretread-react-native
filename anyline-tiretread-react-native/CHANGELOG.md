@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.1.0] - 2026-06-15
+
+### Added
+
+- `isDeviceSupported()` — checks whether the current device meets the hardware requirements for tire tread scanning. Returns an `SdkResult<boolean>`. Call this before `initialize()` to verify compatibility.
+- `CAMERA_PERMISSION_DENIED` error code returned by `isDeviceSupported()` on Android when camera permission is not granted before invoking the check on non-allowlisted devices.
+
+### Changed
+
+- Updated underlying Anyline Tire Tread SDK to 15.1.0 (Android `shared-android:15.1.0`, iOS `AnylineTireTreadSdk ~> 15.1`).
+- Wrapper version aligned with SDK version (15.1.0).
+
+### Dependencies
+
+Tire Tread SDK 15.1.0: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html)
+
 ## [1.0.0] - 2026-03-25
 
 This release marks the first stable 1.0 version of the Anyline Tire Tread React Native wrapper.

@@ -125,6 +125,12 @@ class TTRModuleImpl {
     self.presenter = presenter
   }
 
+  func isDeviceSupported(completion: @escaping (Any) -> Void) {
+    AnylineTireTread.shared.isDeviceSupported { result in
+      completion(Bridge.shared.boolean(sdkResult: result))
+    }
+  }
+
   func initialize(options: NSDictionary, completion: @escaping (Any) -> Void) {
     let licenseKey = (options["licenseKey"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let customTag: String? = {

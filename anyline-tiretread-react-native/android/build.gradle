@@ -155,7 +155,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
   implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
 
-  implementation("io.anyline.tiretread.sdk:shared-android:15.0.0")
+  implementation("io.anyline.tiretread.sdk:shared-android:15.1.0")
 
   testImplementation "com.facebook.react:react-android:0.76.9"
   testImplementation "junit:junit:4.13.2"
