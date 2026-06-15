@@ -3,6 +3,9 @@
 
 @interface AnylineTtrPlugin : NSObject
 
+- (void)isDeviceSupportedWithResolver:(RCTPromiseResolveBlock)resolve
+                             rejecter:(RCTPromiseRejectBlock)reject;
+
 - (void)initializeWithOptions:(NSDictionary *)options
                      resolver:(RCTPromiseResolveBlock)resolve
                      rejecter:(RCTPromiseRejectBlock)reject;

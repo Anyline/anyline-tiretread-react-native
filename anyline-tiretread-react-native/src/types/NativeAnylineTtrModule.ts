@@ -39,6 +39,7 @@ type TireIdFeedbackArgs = {
 
 export interface Spec {
   initialize(options: InitializeArgs): Promise<SdkResult<null>>;
+  isDeviceSupported(): Promise<SdkResult<boolean>>;
   scan(options: ScanArgs): Promise<ScanOutcome>;
   getResult(options: ResultArgs): Promise<SdkResult<TreadDepthResult>>;
   getHeatmap(options: ResultArgs): Promise<SdkResult<Heatmap>>;

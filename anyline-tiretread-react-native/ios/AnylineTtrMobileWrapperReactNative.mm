@@ -25,6 +25,12 @@ RCT_EXPORT_MODULE()
   return dispatch_get_main_queue();
 }
 
+RCT_EXPORT_METHOD(isDeviceSupported:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [self.plugin isDeviceSupportedWithResolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(initialize:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

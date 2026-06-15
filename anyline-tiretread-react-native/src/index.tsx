@@ -109,6 +109,10 @@ export type {
 
 const AnylineTtrMobileWrapperReactNative = NativeAnylineTtrModule;
 
+export function isDeviceSupported(): Promise<SdkResult<boolean>> {
+  return AnylineTtrMobileWrapperReactNative.isDeviceSupported();
+}
+
 export function initialize(
   licenseKey: string,
   options?: InitOptions | null

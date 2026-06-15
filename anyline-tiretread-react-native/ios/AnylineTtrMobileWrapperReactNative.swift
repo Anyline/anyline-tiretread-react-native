@@ -80,6 +80,16 @@ public final class AnylineTtrPlugin: NSObject, TTRPresenter {
     ttrDebugLog("UIApplication willEnterForeground")
   }
 
+  @objc(isDeviceSupportedWithResolver:rejecter:)
+  public func isDeviceSupported(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.isDeviceSupported { result in
+      self.resolveOnMain(resolve, result)
+    }
+  }
+
   @objc(initializeWithOptions:resolver:rejecter:)
   public func initialize(
     options: NSDictionary,

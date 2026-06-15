@@ -21,6 +21,9 @@ class TTRReactNativeModule(context: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun isDeviceSupported(promise: Promise) = impl.isDeviceSupported(promise)
+
+  @ReactMethod
   fun initialize(options: ReadableMap, promise: Promise) = impl.initialize(options, promise)
 
   @ReactMethod
