@@ -26,10 +26,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Ensure npm supports trusted publishing
-        run: npm install -g npm@latest   # trusted publishing needs npm >= 11.5.1
+        run: npm install -g npm@11   # OIDC needs npm >= 11.5.1; pin to stable 11.x (Node 22 ships npm 10)
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install             # no committed lockfile, so not `npm ci`
 
       - name: Publish (OIDC trusted publishing, no token)
         run: npm publish --access public
