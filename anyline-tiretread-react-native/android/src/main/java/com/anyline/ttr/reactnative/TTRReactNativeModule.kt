@@ -56,4 +56,13 @@ class TTRReactNativeModule(context: ReactApplicationContext) :
 
   @ReactMethod
   fun getWrapperVersion(promise: Promise) = impl.getWrapperVersion(promise)
+
+  @ReactMethod
+  fun tireSidewallScan(options: ReadableMap, promise: Promise) = impl.tireSidewallScan(options, promise)
+
+  @ReactMethod
+  fun tireSidewallIsSupported(promise: Promise) = impl.tireSidewallIsSupported(promise)
+
+  @ReactMethod
+  fun tireSidewallResolvePlayServices(promise: Promise) = impl.tireSidewallResolvePlayServices(promise)
 }

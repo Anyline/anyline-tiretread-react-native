@@ -189,6 +189,14 @@ All functions are fully typed. Return types and error shapes are available via T
 - `sendTreadDepthResultFeedback(measurementUUID, treadResultRegions)` — Submit corrected tread depth values
 - `sendTireIdFeedback(measurementUUID, tireId)` — Submit a corrected tire identifier
 
+### Tire Sidewall (TSW)
+
+- `TireSidewall.scan({ clientId, config? })` — Open the sidewall scanner, returns `TswScanOutcome`
+- `TireSidewall.isSupported()` — Check whether the device can run the sidewall scanner
+- `TireSidewall.resolvePlayServices()` — Show the Play Services resolution dialog (Android only)
+
+See [Tire Sidewall (TSW) Scanner](#tire-sidewall-tsw-scanner) for details.
+
 ### Utility
 
 - `getSdkVersion()` — Native SDK version
@@ -250,6 +258,7 @@ interface SdkError {
 | Code | When |
 |------|------|
 | `INVALID_ARGUMENT` | Invalid config value passed to an API call |
+| `CAMERA_PERMISSION_DENIED` | Camera permission was denied at runtime |
 
 </details>
 
@@ -274,6 +283,7 @@ interface SdkError {
 | `SESSION_CREATION_FAILED` | Backend rejected the scan session |
 | `MEASUREMENT_ERROR` | Backend could not process the scan |
 | `ALREADY_RUNNING` | A scan is already in progress |
+| `PLAY_SERVICES_UNAVAILABLE` | Android: Google Play Services / on-device runtime unavailable (sidewall support check) |
 | `INTERNAL_ERROR` | Unexpected native SDK error |
 | `UNKNOWN_ERROR` | Unclassified error |
 
@@ -324,6 +334,85 @@ A successful `getResult` call returns a `TreadDepthResult`. Here's what you get 
   | 'ResultReady' | 'ResultAndReportReady'
   | 'Completed' | 'Aborted' | 'Failed'
 ```
+
+## Tire Sidewall (TSW) Scanner
+
+The Tire Sidewall scanner is a **standalone** scanner that captures a single tire
+sidewall image on-device, uploads it to the Anyline cloud, and returns the result
+synchronously. It is independent of tread-depth scanning:
+
+- It does **not** require `initialize()`.
+- It is authed by a separate cloud **`clientId`** (provided by Anyline), not the
+  TTR license key.
+
+```typescript
+import { TireSidewall } from '@anyline/tire-tread-react-native-module';
+
+// 1. (Optional) Check device support — does not require initialization.
+const support = await TireSidewall.isSupported();
+if (!support.supported) {
+  if (support.userResolvable) {
+    await TireSidewall.resolvePlayServices(); // Android only; no-op on iOS
+  }
+  return;
+}
+
+// 2. Scan.
+const outcome = await TireSidewall.scan({
+  clientId: 'YOUR_SIDEWALL_CLIENT_ID',
+  config: {
+    correlationId: 'c0ffee00-c0ff-4ee0-b0ba-c0ffee0000ff', // optional, v4 UUID
+    texts: { alignTire: 'Align the tire' },                 // optional UI overrides
+  },
+});
+
+// 3. Handle the outcome.
+switch (outcome.kind) {
+  case 'completed':
+    // outcome.resultJson  — raw cloud JSON (parse in your app)
+    // outcome.imageBase64 — captured JPEG, base64 (no data-URI prefix)
+    // outcome.lighting    — 'Dark' | 'Bright' | 'Good' | null
+    break;
+  case 'aborted':
+    // user dismissed the scanner before capture
+    break;
+  case 'failed':
+    // outcome.error: SdkError
+    break;
+}
+```
+
+Render the captured image directly from the base64 payload:
+
+```tsx
+<Image source={{ uri: `data:image/jpeg;base64,${outcome.imageBase64}` }} />
+```
+
+### Configuration (`TireSidewallConfig`)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `correlationId` | `string?` | Correlates scans across Anyline products. Must be a **v4 UUID** when set; an invalid value fails the scan with `INVALID_UUID`. |
+| `texts` | `TireSidewallTexts?` | Optional overrides for the scanner overlay strings. Omit a field to keep the SDK default. |
+
+### Outcome (`TswScanOutcome`)
+
+| `kind` | Fields |
+|--------|--------|
+| `'completed'` | `resultJson: string`, `imageBase64: string`, `lighting: 'Dark' \| 'Bright' \| 'Good' \| null` |
+| `'aborted'` | — |
+| `'failed'` | `error?: SdkError` |
+
+### Sidewall-specific error codes
+
+In addition to the shared codes (see [Error Handling](#error-handling)), a sidewall
+scan can return:
+
+| Code | When |
+|------|------|
+| `INVALID_UUID` | `correlationId` is not a valid v4 UUID |
+| `PLAY_SERVICES_UNAVAILABLE` | Android: Google Play Services / on-device runtime is missing (may be user-resolvable) |
+| `CAMERA_PERMISSION_DENIED` | Camera permission was denied at runtime |
 
 ## Troubleshooting
 

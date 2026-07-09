@@ -1,6 +1,7 @@
 package com.anyline.ttr.reactnative
 
 import android.content.Context
+import android.util.Base64
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -9,6 +10,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
 import io.anyline.tiretread.sdk.InternalAPI
 import io.anyline.tiretread.sdk.AnylineTireTreadSdk
+import io.anyline.tiretread.sdk.api.AnylineTireSidewallScanner
 import io.anyline.tiretread.sdk.api.AnylineTireTread
 import io.anyline.tiretread.sdk.api.AnylineTireTreadScanner
 import io.anyline.tiretread.sdk.api.Bridge
@@ -18,11 +20,20 @@ import io.anyline.tiretread.sdk.api.InitOptions
 import io.anyline.tiretread.sdk.api.ScanOutcome
 import io.anyline.tiretread.sdk.api.SdkError
 import io.anyline.tiretread.sdk.api.SdkResult
+import io.anyline.tiretread.sdk.api.TswScanResult
+import io.anyline.tiretread.sdk.api.TswSupportStatus
+import io.anyline.tiretread.sdk.tsw.ui.configs.TswScannerConfig
 import io.anyline.tiretread.sdk.types.Heatmap
 import io.anyline.tiretread.sdk.types.MeasurementInfo
 import io.anyline.tiretread.sdk.types.TreadDepthResult
 import io.anyline.tiretread.sdk.types.TreadResultRegion
 import io.anyline.tiretread.sdk.types.WrapperInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -30,6 +41,9 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 internal class TTRReactNativeModuleImpl(
   private val context: ReactApplicationContext,
@@ -37,6 +51,9 @@ internal class TTRReactNativeModuleImpl(
 ) {
 
   private var scanPromise: Promise? = null
+  private var sidewallScanPromise: Promise? = null
+  // The sidewall scanner's isSupported() is a suspend function; run it on Main.
+  private val sidewallScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
   internal var runtime: TTRRuntimeProtocol = DefaultRuntime(context)
   internal var runScan: (Context, String?, String?, (ScanOutcome) -> Unit) -> Unit =
     { from, configJson, optionsJson, completion ->
@@ -50,6 +67,8 @@ internal class TTRReactNativeModuleImpl(
 
   fun invalidate() {
     scanPromise = null
+    sidewallScanPromise = null
+    sidewallScope.cancel()
   }
 
   fun isDeviceSupported(promise: Promise) {
@@ -63,10 +82,19 @@ internal class TTRReactNativeModuleImpl(
   fun initialize(options: ReadableMap, promise: Promise) {
     val licenseKey = options.getString("licenseKey")?.trim().orEmpty()
     val customTag = options.getString("customTag")?.trim().takeUnless { it.isNullOrEmpty() }
+    val uploadTimeoutMillis = options.getDoubleOrNull("uploadTimeoutMillis")?.toLong()
+
+    val baseOptions = InitOptions(
+      customTag = customTag,
+      wrapperInfo = WrapperInfo.ReactNative(BuildConfig.WRAPPER_VERSION),
+    )
+    val initOptions = uploadTimeoutMillis
+      ?.let { baseOptions.copy(uploadTimeoutMillis = it) }
+      ?: baseOptions
 
     runtime.initialize(
       licenseKey = licenseKey,
-      options = InitOptions(customTag = customTag, wrapperInfo = WrapperInfo.ReactNative(BuildConfig.WRAPPER_VERSION)),
+      options = initOptions,
     ) { result ->
       resolveOnJs {
         promise.resolve(BridgeValue.toWritableMap(Bridge.unit(result)))
@@ -180,6 +208,58 @@ internal class TTRReactNativeModuleImpl(
     promise.resolve(BuildConfig.WRAPPER_VERSION)
   }
 
+  fun tireSidewallScan(options: ReadableMap, promise: Promise) {
+    if (sidewallScanPromise != null) {
+      promise.resolve(
+        BridgeValue.toWritableMap(
+          sidewallFailed(ErrorCode.ALREADY_RUNNING, "A sidewall scan is already in progress."),
+        ),
+      )
+      return
+    }
+
+    val clientId = options.getString("clientId")?.trim().orEmpty()
+    val configJson = options.getString("configJson")
+
+    sidewallScanPromise = promise
+    AnylineTireSidewallScanner().scan(
+      from = context.currentActivity ?: context,
+      clientId = clientId,
+      config = buildSidewallConfig(configJson),
+    ) { result ->
+      val pending = sidewallScanPromise ?: return@scan
+      sidewallScanPromise = null
+      resolveOnJs {
+        pending.resolve(BridgeValue.toWritableMap(serializeSidewall(result)))
+      }
+    }
+  }
+
+  fun tireSidewallIsSupported(promise: Promise) {
+    sidewallScope.launch {
+      val status =
+        runCatching { AnylineTireSidewallScanner.isSupported() }
+          .getOrElse { t ->
+            TswSupportStatus.Unavailable(
+              error =
+                SdkError(
+                  code = ErrorCode.INTERNAL_ERROR,
+                  message = t.message ?: "Failed to check device support.",
+                ),
+              userResolvable = false,
+            )
+          }
+      resolveOnJs {
+        promise.resolve(BridgeValue.toWritableMap(serializeSidewall(status)))
+      }
+    }
+  }
+
+  fun tireSidewallResolvePlayServices(promise: Promise) {
+    context.currentActivity?.let { AnylineTireSidewallScanner.resolvePlayServices(it) }
+    promise.resolve(null)
+  }
+
   private fun ReadableArray.toTreadResultRegions(): List<TreadResultRegion> {
     val out = ArrayList<TreadResultRegion>(size())
     for (i in 0 until size()) {
@@ -272,6 +352,70 @@ internal class TTRReactNativeModuleImpl(
 
   private fun sanitizedOutcome(outcome: ScanOutcome): Map<String, Any?> =
     Bridge.outcome(outcome).filterKeys { key -> key in OUTCOME_KEYS }
+
+  // internal (not private) so unit tests in the same module can exercise the
+  // hand-serialization and config-mapping directly; the SDK scanner itself is
+  // not injectable here.
+  internal fun serializeSidewall(result: TswScanResult): Map<String, Any?> =
+    when (result) {
+      is TswScanResult.Completed ->
+        mapOf(
+          "kind" to "completed",
+          "resultJson" to result.resultJson,
+          "imageBase64" to Base64.encodeToString(result.imageBytes, Base64.NO_WRAP),
+          "lighting" to result.scanMetadata.environmentLighting?.name,
+        )
+      is TswScanResult.Failed ->
+        mapOf(
+          "kind" to "failed",
+          "error" to result.error.toMap(),
+        )
+      TswScanResult.Aborted -> mapOf("kind" to "aborted")
+    }
+
+  internal fun serializeSidewall(status: TswSupportStatus): Map<String, Any?> =
+    when (status) {
+      is TswSupportStatus.Unavailable ->
+        mapOf(
+          "supported" to false,
+          "userResolvable" to status.userResolvable,
+          "error" to status.error.toMap(),
+        )
+      else -> mapOf("supported" to true, "userResolvable" to false)
+    }
+
+  private fun sidewallFailed(code: ErrorCode, message: String): Map<String, Any?> =
+    mapOf(
+      "kind" to "failed",
+      "error" to SdkError(code = code, message = message).toMap(),
+    )
+
+  internal fun buildSidewallConfig(configJson: String?): TswScannerConfig {
+    val config = TswScannerConfig()
+    if (configJson.isNullOrBlank()) return config
+
+    val root =
+      runCatching { Json.parseToJsonElement(configJson).jsonObject }.getOrNull()
+        ?: return config
+
+    root["correlationId"]?.jsonPrimitive?.contentOrNull?.let { config.correlationId = it }
+
+    (root["texts"] as? JsonObject)?.let { texts ->
+      fun str(key: String): String? = texts[key]?.jsonPrimitive?.contentOrNull
+      str("initializing")?.let { config.texts.textInitializing = it }
+      str("alignTire")?.let { config.texts.textAlignTire = it }
+      str("moveCloser")?.let { config.texts.textMoveCloser = it }
+      str("moveAway")?.let { config.texts.textMoveAway = it }
+      str("faceTire")?.let { config.texts.textFaceTire = it }
+      str("ready")?.let { config.texts.textReady = it }
+      str("holdSteady")?.let { config.texts.textHoldSteady = it }
+      str("focusing")?.let { config.texts.textFocusing = it }
+      str("calibratingWhiteBalance")?.let { config.texts.textCalibratingWhiteBalance = it }
+      str("calibratingExposure")?.let { config.texts.textCalibratingExposure = it }
+      str("tooDark")?.let { config.texts.textTooDark = it }
+    }
+    return config
+  }
 
   companion object {
     const val NAME = "AnylineTtrMobileWrapperReactNative"

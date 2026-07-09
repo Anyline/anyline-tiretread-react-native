@@ -47,4 +47,14 @@
 - (void)getWrapperVersionWithResolver:(RCTPromiseResolveBlock)resolve
                              rejecter:(RCTPromiseRejectBlock)reject;
 
+- (void)tireSidewallScanWithOptions:(NSDictionary *)options
+                           resolver:(RCTPromiseResolveBlock)resolve
+                           rejecter:(RCTPromiseRejectBlock)reject;
+
+- (void)tireSidewallIsSupportedWithResolver:(RCTPromiseResolveBlock)resolve
+                                   rejecter:(RCTPromiseRejectBlock)reject;
+
+- (void)tireSidewallResolvePlayServicesWithResolver:(RCTPromiseResolveBlock)resolve
+                                           rejecter:(RCTPromiseRejectBlock)reject;
+
 @end

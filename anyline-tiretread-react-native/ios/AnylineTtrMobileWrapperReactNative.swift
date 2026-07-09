@@ -2,10 +2,6 @@ import AnylineTireTreadSdk
 import Foundation
 import UIKit
 
-func ttrDebugLog(_ message: String) {
-  NSLog("[TTR-RN][iOS] %@", message)
-}
-
 @objc(AnylineTtrPlugin)
 public final class AnylineTtrPlugin: NSObject, TTRPresenter {
   private lazy var impl: TTRModuleImpl = {
@@ -207,6 +203,39 @@ public final class AnylineTtrPlugin: NSObject, TTRPresenter {
   @objc(getWrapperVersionWithResolver:rejecter:)
   public func getWrapperVersion(resolve: @escaping RCTPromiseResolveBlock, reject _: @escaping RCTPromiseRejectBlock) {
     resolve(impl.getWrapperVersion())
+  }
+
+  @objc(tireSidewallScanWithOptions:resolver:rejecter:)
+  public func tireSidewallScan(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    ttrDebugLog("tireSidewallScan requested")
+    DispatchQueue.main.async { [self] in
+      self.impl.tireSidewallScan(options: options) { result in
+        self.resolveOnMain(resolve, result)
+      }
+    }
+  }
+
+  @objc(tireSidewallIsSupportedWithResolver:rejecter:)
+  public func tireSidewallIsSupported(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.tireSidewallIsSupported { result in
+      self.resolveOnMain(resolve, result)
+    }
+  }
+
+  @objc(tireSidewallResolvePlayServicesWithResolver:rejecter:)
+  public func tireSidewallResolvePlayServices(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    // Google Play Services resolution is Android-only; a no-op on iOS.
+    resolve(NSNull())
   }
 
   // MARK: - Thread Safety

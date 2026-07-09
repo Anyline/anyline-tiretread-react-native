@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.3.0] - 2026-07-09
+
+### Added
+
+- **Tire Sidewall (TSW) scanner** — a new standalone, on-device scanner exposed via the `TireSidewall` namespace:
+  - `TireSidewall.scan({ clientId, config? })` resolves with a `TswScanOutcome` — `{ kind: 'completed' }` carrying the raw `resultJson`, the captured image as `imageBase64`, and the detected `lighting`; `{ kind: 'aborted' }`; or `{ kind: 'failed' }` with a structured `SdkError`.
+  - `TireSidewall.isSupported()` returns a `TireSidewallSupport` (on Android it checks Google Play Services and the on-device runtime; on iOS it is always supported). Does not require SDK initialization.
+  - `TireSidewall.resolvePlayServices()` shows the Google Play Services resolution dialog after a user-resolvable `isSupported()` failure (Android only; a no-op on iOS).
+  - New types: `TireSidewallConfig`, `TireSidewallTexts`, `TireSidewallSupport`, `TswScanOutcome`, and the `EnvironmentLighting` type.
+- `PLAY_SERVICES_UNAVAILABLE` error code (sidewall device-support failures on Android).
+
+### Changed
+
+- Updated underlying Anyline Tire Tread SDK to 15.3.0 (Android `shared-android:15.3.0`, iOS `AnylineTireTreadSdk ~> 15.3.0`).
+- Wrapper version aligned with SDK version (15.3.0).
+
+### Dependencies
+
+Tire Tread SDK 15.3.0: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html)
+
 ## [15.1.0] - 2026-06-15
 
 ### Added

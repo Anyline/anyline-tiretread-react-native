@@ -9,8 +9,7 @@ import path from 'path';
 
 const pkg = require(path.resolve(__dirname, '..', '..', '..', 'package.json'));
 
-const ANYLINE_MAVEN_URL =
-  'https://europe-maven.pkg.dev/anyline-ttr-sdk/maven';
+const ANYLINE_MAVEN_URL = 'https://europe-maven.pkg.dev/anyline-ttr-sdk/maven';
 
 type AnylineTtrPluginProps = {
   cameraPermissionText?: string;

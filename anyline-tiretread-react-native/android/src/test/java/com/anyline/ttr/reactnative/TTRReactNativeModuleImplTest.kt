@@ -1,6 +1,7 @@
 package com.anyline.ttr.reactnative
 
 import android.content.Context
+import android.util.Base64
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.JavaOnlyArray
 import com.facebook.react.bridge.JavaOnlyMap
@@ -13,6 +14,10 @@ import io.anyline.tiretread.sdk.api.InitOptions
 import io.anyline.tiretread.sdk.api.ScanOutcome
 import io.anyline.tiretread.sdk.api.SdkError
 import io.anyline.tiretread.sdk.api.SdkResult
+import io.anyline.tiretread.sdk.api.EnvironmentLighting
+import io.anyline.tiretread.sdk.api.TswScanMetadata
+import io.anyline.tiretread.sdk.api.TswScanResult
+import io.anyline.tiretread.sdk.api.TswSupportStatus
 import io.anyline.tiretread.sdk.types.Heatmap
 import io.anyline.tiretread.sdk.types.MeasurementInfo
 import io.anyline.tiretread.sdk.types.TreadDepthResult
@@ -477,6 +482,164 @@ class TTRReactNativeModuleImplTest {
     impl.getWrapperVersion(promise)
 
     assertEquals(BuildConfig.WRAPPER_VERSION, promise.resolvedValue)
+  }
+
+  // --- Tire Sidewall (TSW) serialization and config mapping ---
+
+  @Test
+  fun `serializeSidewall Completed maps json image base64 and lighting`() {
+    mockkStatic(Base64::class)
+    every { Base64.encodeToString(any<ByteArray>(), any<Int>()) } returns "QkFTRTY0"
+    val metadata = mockk<TswScanMetadata> {
+      every { environmentLighting } returns EnvironmentLighting.Good
+    }
+    val completed = mockk<TswScanResult.Completed> {
+      every { resultJson } returns """{"size":"205/55R16"}"""
+      every { imageBytes } returns byteArrayOf(1, 2, 3)
+      every { scanMetadata } returns metadata
+    }
+
+    val map = impl.serializeSidewall(completed)
+
+    assertEquals("completed", map["kind"])
+    assertEquals("""{"size":"205/55R16"}""", map["resultJson"])
+    assertEquals("QkFTRTY0", map["imageBase64"])
+    assertEquals("Good", map["lighting"])
+  }
+
+  @Test
+  fun `serializeSidewall Completed maps null lighting when unavailable`() {
+    mockkStatic(Base64::class)
+    every { Base64.encodeToString(any<ByteArray>(), any<Int>()) } returns "QkFTRTY0"
+    val metadata = mockk<TswScanMetadata> {
+      every { environmentLighting } returns null
+    }
+    val completed = mockk<TswScanResult.Completed> {
+      every { resultJson } returns "{}"
+      every { imageBytes } returns byteArrayOf()
+      every { scanMetadata } returns metadata
+    }
+
+    val map = impl.serializeSidewall(completed)
+
+    assertEquals("completed", map["kind"])
+    assertNull(map["lighting"])
+  }
+
+  @Test
+  fun `serializeSidewall Failed maps kind and error code`() {
+    val result = TswScanResult.Failed(
+      SdkError(code = ErrorCode.INVALID_UUID, message = "bad uuid")
+    )
+
+    val map = impl.serializeSidewall(result)
+
+    assertEquals("failed", map["kind"])
+    assertEquals("INVALID_UUID", (map["error"] as Map<*, *>)["code"])
+  }
+
+  @Test
+  fun `serializeSidewall Aborted maps only kind`() {
+    val map = impl.serializeSidewall(TswScanResult.Aborted)
+
+    assertEquals("aborted", map["kind"])
+    assertEquals(setOf("kind"), map.keys)
+  }
+
+  @Test
+  fun `serializeSidewall Supported maps supported true`() {
+    val map = impl.serializeSidewall(TswSupportStatus.Supported)
+
+    assertEquals(true, map["supported"])
+    assertEquals(false, map["userResolvable"])
+  }
+
+  @Test
+  fun `serializeSidewall Unavailable maps flags and error code`() {
+    val status = TswSupportStatus.Unavailable(
+      error = SdkError(code = ErrorCode.PLAY_SERVICES_UNAVAILABLE, message = "no play services"),
+      userResolvable = true,
+    )
+
+    val map = impl.serializeSidewall(status)
+
+    assertEquals(false, map["supported"])
+    assertEquals(true, map["userResolvable"])
+    assertEquals("PLAY_SERVICES_UNAVAILABLE", (map["error"] as Map<*, *>)["code"])
+  }
+
+  @Test
+  fun `buildSidewallConfig returns defaults for null json`() {
+    val config = impl.buildSidewallConfig(null)
+
+    assertNull(config.correlationId)
+    assertEquals("Align the tire within the overlay", config.texts.textAlignTire)
+  }
+
+  @Test
+  fun `buildSidewallConfig returns defaults for blank json`() {
+    val config = impl.buildSidewallConfig("   ")
+
+    assertNull(config.correlationId)
+  }
+
+  @Test
+  fun `buildSidewallConfig returns defaults for invalid json`() {
+    val config = impl.buildSidewallConfig("{ not valid json")
+
+    assertNull(config.correlationId)
+    assertEquals("Align the tire within the overlay", config.texts.textAlignTire)
+  }
+
+  @Test
+  fun `buildSidewallConfig maps correlationId`() {
+    val config = impl.buildSidewallConfig("""{"correlationId":"c0ffee00-c0ff-4ee0-b0ba-c0ffee0000ff"}""")
+
+    assertEquals("c0ffee00-c0ff-4ee0-b0ba-c0ffee0000ff", config.correlationId)
+  }
+
+  @Test
+  fun `buildSidewallConfig maps all overlay text fields and leaves the rest at defaults`() {
+    val json = """
+      {
+        "texts": {
+          "initializing": "Init",
+          "alignTire": "Align",
+          "moveCloser": "Closer",
+          "moveAway": "Away",
+          "faceTire": "Face",
+          "ready": "Ready",
+          "holdSteady": "Steady",
+          "focusing": "Focusing",
+          "calibratingWhiteBalance": "WB",
+          "calibratingExposure": "Exposure",
+          "tooDark": "Dark"
+        }
+      }
+    """.trimIndent()
+
+    val config = impl.buildSidewallConfig(json)
+
+    val texts = config.texts
+    assertEquals("Init", texts.textInitializing)
+    assertEquals("Align", texts.textAlignTire)
+    assertEquals("Closer", texts.textMoveCloser)
+    assertEquals("Away", texts.textMoveAway)
+    assertEquals("Face", texts.textFaceTire)
+    assertEquals("Ready", texts.textReady)
+    assertEquals("Steady", texts.textHoldSteady)
+    assertEquals("Focusing", texts.textFocusing)
+    assertEquals("WB", texts.textCalibratingWhiteBalance)
+    assertEquals("Exposure", texts.textCalibratingExposure)
+    assertEquals("Dark", texts.textTooDark)
+  }
+
+  @Test
+  fun `buildSidewallConfig leaves unspecified texts at their defaults`() {
+    val config = impl.buildSidewallConfig("""{"texts":{"alignTire":"Only this"}}""")
+
+    assertEquals("Only this", config.texts.textAlignTire)
+    assertEquals("Move closer", config.texts.textMoveCloser)
   }
 
   private fun waitFor(timeoutMs: Long = 1_000, condition: () -> Boolean) {

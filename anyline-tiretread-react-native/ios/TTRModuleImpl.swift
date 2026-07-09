@@ -109,6 +109,16 @@ class TTRModuleImpl {
   private let testingBridge: TTRTestingBridgeProtocol
   private let wrapperVersionProvider: TTRWrapperVersionProviding
   private var scanCompletion: ((Any) -> Void)?
+  private var sidewallScanCompletion: ((Any) -> Void)?
+  /// Launches the sidewall scanner. Injectable for tests; defaults to the real
+  /// SDK scanner.
+  var runSidewallScan:
+    (UIViewController, String, TswScannerConfig, @escaping (TswScanResult) -> Void) -> Void = {
+      from, clientId, config, onResult in
+      AnylineTireSidewallScanner().scan(from: from, clientId: clientId, config: config) { result in
+        onResult(result)
+      }
+    }
   weak var presenter: TTRPresenter?
 
   init(
@@ -137,12 +147,18 @@ class TTRModuleImpl {
       let raw = (options["customTag"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
       return (raw?.isEmpty == false) ? raw : nil
     }()
+    // Kotlin/Native only exposes the 3-param InitOptions init to Swift, so we
+    // must pass a value even when the caller omits one. The SDK exposes its
+    // own default via the InitOptions companion; use that instead of a literal.
+    let uploadTimeoutMillis = (options["uploadTimeoutMillis"] as? NSNumber)?.int64Value
+      ?? InitOptions.companion.DEFAULT_UPLOAD_TIMEOUT_MILLIS
 
     runtime.initialize(
       licenseKey: licenseKey,
       options: InitOptions(
         customTag: customTag,
-        wrapperInfo: WrapperInfo.ReactNative(version: wrapperVersionProvider.currentVersion())
+        wrapperInfo: WrapperInfo.ReactNative(version: wrapperVersionProvider.currentVersion()),
+        uploadTimeoutMillis: uploadTimeoutMillis
       )
     ) { sdkResult in
       let bridged = Bridge.shared.unit(sdkResult: sdkResult)
@@ -265,6 +281,134 @@ class TTRModuleImpl {
 
   func getWrapperVersion() -> String {
     wrapperVersionProvider.currentVersion()
+  }
+
+  func tireSidewallScan(options: NSDictionary, completion: @escaping (Any) -> Void) {
+    ttrDebugLog("TTRModuleImpl.tireSidewallScan start")
+    if sidewallScanCompletion != nil {
+      ttrDebugLog("TTRModuleImpl.tireSidewallScan already-running short-circuit")
+      completion(sidewallFailedOutcome(code: .alreadyRunning, message: "A sidewall scan is already in progress."))
+      return
+    }
+
+    guard let vc = presenter?.presentedViewController() else {
+      ttrDebugLog("TTRModuleImpl.tireSidewallScan missing presenter view controller")
+      completion(
+        sidewallFailedOutcome(
+          code: .invalidArgument,
+          message: "Cannot start sidewall scan because no active iOS view controller is available. Call it only after the React Native screen is mounted and the app is in the foreground."
+        )
+      )
+      return
+    }
+
+    let clientId = (options["clientId"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let configJson = options["configJson"] as? String
+    sidewallScanCompletion = completion
+
+    runSidewallScan(vc, clientId, buildSidewallConfig(configJson)) { [weak self] result in
+      guard let self = self, let pending = self.consumeSidewallCompletion() else { return }
+      pending(self.serializeSidewall(result))
+    }
+  }
+
+  func tireSidewallIsSupported(completion: @escaping (Any) -> Void) {
+    AnylineTireSidewallScanner.companion.isSupported { status, _ in
+      if let unavailable = status as? TswSupportStatus.Unavailable {
+        completion([
+          "supported": false,
+          "userResolvable": unavailable.userResolvable,
+          "error": unavailable.error.toMap(),
+        ])
+      } else {
+        // iOS reports the sidewall scanner as always supported.
+        completion(["supported": true, "userResolvable": false])
+      }
+    }
+  }
+
+  private func consumeSidewallCompletion() -> ((Any) -> Void)? {
+    let completion = sidewallScanCompletion
+    sidewallScanCompletion = nil
+    return completion
+  }
+
+  private func serializeSidewall(_ result: TswScanResult) -> Any {
+    if let completed = result as? TswScanResult.Completed {
+      var map: [String: Any] = [
+        "kind": "completed",
+        "resultJson": completed.resultJson,
+        "imageBase64": toData(completed.imageBytes).base64EncodedString(),
+      ]
+      if let lighting = completed.scanMetadata.environmentLighting {
+        map["lighting"] = lighting.name
+      } else {
+        map["lighting"] = NSNull()
+      }
+      return map
+    }
+    if let failed = result as? TswScanResult.Failed {
+      return ["kind": "failed", "error": failed.error.toMap()]
+    }
+    // TswScanResult.Aborted
+    return ["kind": "aborted"]
+  }
+
+  private func sidewallFailedOutcome(code: ErrorCode, message: String) -> [String: Any] {
+    let error = SdkError(
+      code: code,
+      type: ErrorType.companion.fromCode(code: code),
+      message: message,
+      debug: nil
+    )
+    return ["kind": "failed", "error": error.toMap()]
+  }
+
+  private func buildSidewallConfig(_ configJson: String?) -> TswScannerConfig {
+    let config = TswScannerConfig()
+    guard let configJson = configJson,
+      let data = configJson.data(using: .utf8),
+      let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else {
+      return config
+    }
+
+    if let correlationId = root["correlationId"] as? String {
+      config.correlationId = correlationId
+    }
+    if let texts = root["texts"] as? [String: Any] {
+      let t = config.texts
+      if let v = texts["initializing"] as? String { t.textInitializing = v }
+      if let v = texts["alignTire"] as? String { t.textAlignTire = v }
+      if let v = texts["moveCloser"] as? String { t.textMoveCloser = v }
+      if let v = texts["moveAway"] as? String { t.textMoveAway = v }
+      if let v = texts["faceTire"] as? String { t.textFaceTire = v }
+      if let v = texts["ready"] as? String { t.textReady = v }
+      if let v = texts["holdSteady"] as? String { t.textHoldSteady = v }
+      if let v = texts["focusing"] as? String { t.textFocusing = v }
+      if let v = texts["calibratingWhiteBalance"] as? String { t.textCalibratingWhiteBalance = v }
+      if let v = texts["calibratingExposure"] as? String { t.textCalibratingExposure = v }
+      if let v = texts["tooDark"] as? String { t.textTooDark = v }
+    }
+    return config
+  }
+
+  /// Copies a Kotlin `ByteArray` (bridged as `KotlinByteArray`) into `Data`.
+  ///
+  /// NOTE: this copies byte-by-byte across the Kotlin/Native boundary. For large
+  /// images consider adding a `ByteArray` → `NSData` accessor on the SDK side to
+  /// avoid the per-byte bridge cost.
+  private func toData(_ array: KotlinByteArray) -> Data {
+    let count = Int(array.size)
+    guard count > 0 else { return Data() }
+    var data = Data(count: count)
+    data.withUnsafeMutableBytes { (raw: UnsafeMutableRawBufferPointer) in
+      let dst = raw.bindMemory(to: Int8.self).baseAddress!
+      for i in 0..<count {
+        dst[i] = array.get(index: Int32(i))
+      }
+    }
+    return data
   }
 
   private func consumeScanCompletion() -> ((Any) -> Void)? {

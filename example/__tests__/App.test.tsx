@@ -8,6 +8,7 @@ import App from '../App';
 
 jest.mock('react-native-config', () => ({
   TTR_LICENSE_KEY: 'test-license-key',
+  TTR_SIDEWALL_CLIENT_ID: 'test-sidewall-client-id',
 }));
 
 jest.mock('@anyline/tire-tread-react-native-module', () => ({
@@ -26,6 +27,11 @@ jest.mock('@anyline/tire-tread-react-native-module', () => ({
     kind: 'ScanCompleted',
     measurementUUID: 'measurement-uuid',
   })),
+  TireSidewall: {
+    scan: jest.fn(async () => ({ kind: 'aborted' })),
+    isSupported: jest.fn(async () => ({ supported: true, userResolvable: false })),
+    resolvePlayServices: jest.fn(async () => {}),
+  },
 }), { virtual: true });
 
 test('renders correctly', async () => {
