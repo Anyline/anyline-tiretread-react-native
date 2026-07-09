@@ -1,0 +1,51 @@
+name: Cut Release on PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+# Built-in GITHUB_TOKEN needs write access to create tags and releases.
+permissions:
+  contents: write
+
+jobs:
+  cut_release:
+    # Only when a release/* PR was actually merged (not just closed)
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive version from branch name
+        id: ver
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"   # e.g. release/15.3.0
+          VERSION="${BRANCH#release/}"                          # 15.3.0
+          TAG="v${VERSION}"                                     # v15.3.0  (matches existing v15.1.0)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.ver.outputs.TAG }}" "${{ github.event.pull_request.merge_commit_sha }}"
+          git push origin "${{ steps.ver.outputs.TAG }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.ver.outputs.VERSION }}"
+          gh release create "${{ steps.ver.outputs.TAG }}" \
+            --title "TTR React Native ${VERSION}" \
+            --target "${{ github.event.pull_request.merge_commit_sha }}" \
+            --notes "## Anyline Tire Tread React Native ${VERSION}
+
+          - npm: https://www.npmjs.com/package/@anyline/tire-tread-react-native-module/v/${VERSION}
+          - Changelog: https://github.com/${{ github.repository }}/blob/${{ steps.ver.outputs.TAG }}/anyline-tiretread-react-native/CHANGELOG.md"
