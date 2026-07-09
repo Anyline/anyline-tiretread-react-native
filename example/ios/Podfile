@@ -19,7 +19,7 @@ end
 
 target 'example' do
   config = use_native_modules!
-  pod 'AnylineTireTreadSdk', '~> 15.1.0'
+  pod 'AnylineTireTreadSdk', '~> 15.3.0'
 
   use_react_native!(
     :path => config[:reactNativePath],

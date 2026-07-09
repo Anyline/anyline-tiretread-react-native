@@ -31,6 +31,8 @@ final class FakeRuntime: TTRRuntimeProtocol {
   var lastTreadDepthResultUuid: String?
   var lastTreadDepthRegions: [TreadResultRegion]?
 
+  var lastInitUploadTimeoutMillis: Int64?
+
   func initialize(
     licenseKey: String,
     options: InitOptions,
@@ -39,6 +41,7 @@ final class FakeRuntime: TTRRuntimeProtocol {
     lastInitLicenseKey = licenseKey
     lastInitCustomTag = options.customTag
     lastInitWrapperVersion = options.wrapperInfo?.version
+    lastInitUploadTimeoutMillis = options.uploadTimeoutMillis
     onComplete(nextInit)
   }
 
@@ -186,6 +189,25 @@ final class TTRModuleImplTests: XCTestCase {
     XCTAssertEqual(fakeRuntime.lastInitLicenseKey, "abc-license")
     XCTAssertEqual(fakeRuntime.lastInitCustomTag, "rn-wrapper")
     XCTAssertEqual(fakeRuntime.lastInitWrapperVersion, "1.0.0-test")
+    XCTAssertEqual(
+      fakeRuntime.lastInitUploadTimeoutMillis,
+      InitOptions.companion.DEFAULT_UPLOAD_TIMEOUT_MILLIS
+    )
+  }
+
+  func testInitializeForwardsExplicitUploadTimeoutMillis() {
+    let expectation = expectation(description: "initialize completes")
+    let options: NSDictionary = [
+      "licenseKey": "abc-license",
+      "uploadTimeoutMillis": NSNumber(value: 30000),
+    ]
+
+    impl.initialize(options: options) { _ in
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 2)
+    XCTAssertEqual(fakeRuntime.lastInitUploadTimeoutMillis, 30000)
   }
 
   func testResultForwardsUuidAndExplicitTimeout() {
@@ -379,6 +401,69 @@ final class TTRModuleImplTests: XCTestCase {
 
   func testGetWrapperVersionReturnsInjectedVersion() {
     XCTAssertEqual(impl.getWrapperVersion(), "1.0.0-test")
+  }
+
+  // --- Tire Sidewall (TSW) ---
+  // Exercised through the public `tireSidewallScan`, capturing what the impl
+  // hands to the SDK scanner via the injectable `runSidewallScan` seam. This
+  // covers clientId trimming and config mapping without touching the real SDK.
+
+  func testTireSidewallScanForwardsTrimmedClientIdAndConfig() {
+    let presenter = FakePresenter()
+    impl.presenter = presenter // held strongly; `presenter` is a weak property
+    var capturedClientId: String?
+    var capturedConfig: TswScannerConfig?
+    impl.runSidewallScan = { _, clientId, config, _ in
+      capturedClientId = clientId
+      capturedConfig = config
+    }
+
+    let options: NSDictionary = [
+      "clientId": "  client-123  ",
+      "configJson": #"{"correlationId":"c0ffee00-c0ff-4ee0-b0ba-c0ffee0000ff","texts":{"alignTire":"Align"}}"#,
+    ]
+    impl.tireSidewallScan(options: options) { _ in }
+
+    XCTAssertEqual(capturedClientId, "client-123")
+    XCTAssertEqual(capturedConfig?.correlationId, "c0ffee00-c0ff-4ee0-b0ba-c0ffee0000ff")
+    XCTAssertEqual(capturedConfig?.texts.textAlignTire, "Align")
+  }
+
+  func testTireSidewallScanBuildsDefaultConfigForInvalidJson() {
+    let presenter = FakePresenter()
+    impl.presenter = presenter // held strongly; `presenter` is a weak property
+    var capturedConfig: TswScannerConfig?
+    impl.runSidewallScan = { _, _, config, _ in capturedConfig = config }
+
+    impl.tireSidewallScan(options: ["clientId": "c", "configJson": "{ not valid"]) { _ in }
+
+    XCTAssertNil(capturedConfig?.correlationId)
+    XCTAssertEqual(capturedConfig?.texts.textAlignTire, "Align the tire within the overlay")
+  }
+
+  func testTireSidewallScanAlreadyRunningReturnsError() {
+    let presenter = FakePresenter()
+    impl.presenter = presenter // held strongly; `presenter` is a weak property
+    // First scan captures the completion but never finishes.
+    impl.runSidewallScan = { _, _, _, _ in }
+    impl.tireSidewallScan(options: ["clientId": "c"]) { _ in }
+
+    var resolved: Any?
+    impl.tireSidewallScan(options: ["clientId": "c"]) { result in resolved = result }
+
+    let map = resolved as? NSDictionary
+    XCTAssertEqual(map?["kind"] as? String, "failed")
+    XCTAssertEqual((map?["error"] as? NSDictionary)?["code"] as? String, "ALREADY_RUNNING")
+  }
+
+  func testTireSidewallScanWithoutViewControllerReturnsInvalidArgument() {
+    // No presenter set → no active view controller.
+    var resolved: Any?
+    impl.tireSidewallScan(options: ["clientId": "c"]) { result in resolved = result }
+
+    let map = resolved as? NSDictionary
+    XCTAssertEqual(map?["kind"] as? String, "failed")
+    XCTAssertEqual((map?["error"] as? NSDictionary)?["code"] as? String, "INVALID_ARGUMENT")
   }
 }
 

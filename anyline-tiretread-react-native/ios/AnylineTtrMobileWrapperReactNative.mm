@@ -105,4 +105,23 @@ RCT_EXPORT_METHOD(getWrapperVersion:(RCTPromiseResolveBlock)resolve
   [self.plugin getWrapperVersionWithResolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(tireSidewallScan:(NSDictionary *)options
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [self.plugin tireSidewallScanWithOptions:options resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(tireSidewallIsSupported:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [self.plugin tireSidewallIsSupportedWithResolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(tireSidewallResolvePlayServices:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [self.plugin tireSidewallResolvePlayServicesWithResolver:resolve rejecter:reject];
+}
+
 @end

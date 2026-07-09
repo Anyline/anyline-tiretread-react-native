@@ -2,7 +2,6 @@ import React from 'react';
 import {
   ActivityIndicator,
   Image,
-  PermissionsAndroid,
   Platform,
   Pressable,
   SafeAreaView,
@@ -18,11 +17,13 @@ import {
   initialize,
   isDeviceSupported,
   scan,
+  TireSidewall,
   type ScanOptions,
   type ScanOutcome,
   type SdkError,
   type TireTreadConfig,
   type TreadDepthResult,
+  type TswScanOutcome,
 } from '@anyline/tire-tread-react-native-module';
 import Config from 'react-native-config';
 
@@ -81,6 +82,12 @@ export default function App(): React.JSX.Element {
   const [scanStatus, setScanStatus] = React.useState('Not scanned');
   const [resultStatus, setResultStatus] = React.useState('No result requested');
 
+  const [isCheckingSidewallSupport, setIsCheckingSidewallSupport] = React.useState(false);
+  const [sidewallSupportStatus, setSidewallSupportStatus] = React.useState('Not checked');
+  const [isSidewallScanning, setIsSidewallScanning] = React.useState(false);
+  const [sidewallStatus, setSidewallStatus] = React.useState('Not scanned');
+  const [sidewallOutcome, setSidewallOutcome] = React.useState<TswScanOutcome | null>(null);
+
   React.useEffect(() => {
     let mounted = true;
     getSdkVersion()
@@ -102,9 +109,6 @@ export default function App(): React.JSX.Element {
     setDeviceSupportStatus('Checking...');
 
     try {
-      if (Platform.OS === 'android') {
-        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
-      }
       const res = await isDeviceSupported();
       if (res.ok) {
         setDeviceSupportStatus(res.value ? 'Device is supported' : 'Device is NOT supported');
@@ -204,9 +208,74 @@ export default function App(): React.JSX.Element {
     }
   }, [measurementUUID, isFetchingResult]);
 
+  const handleSidewallSupportPress = React.useCallback(async () => {
+    if (isCheckingSidewallSupport) return;
+
+    setIsCheckingSidewallSupport(true);
+    setSidewallSupportStatus('Checking...');
+
+    try {
+      const support = await TireSidewall.isSupported();
+      if (support.supported) {
+        setSidewallSupportStatus('Sidewall scanning is supported');
+      } else if (support.userResolvable) {
+        setSidewallSupportStatus('Not supported — resolving Play Services...');
+        await TireSidewall.resolvePlayServices();
+      } else {
+        setSidewallSupportStatus(support.error ? formatError(support.error) : 'Not supported');
+      }
+    } catch (_error) {
+      setSidewallSupportStatus('Failed (unexpected error)');
+    } finally {
+      setIsCheckingSidewallSupport(false);
+    }
+  }, [isCheckingSidewallSupport]);
+
+  const handleSidewallScanPress = React.useCallback(async () => {
+    if (isSidewallScanning) return;
+
+    setError(null);
+    setSidewallOutcome(null);
+    setIsSidewallScanning(true);
+    setSidewallStatus('Scanning...');
+
+    try {
+      // The sidewall scanner is standalone: it needs no initialize() and is
+      // authed by its own cloud API client ID rather than the TTR license key.
+      const outcome = await TireSidewall.scan({
+        clientId: Config.TTR_SIDEWALL_CLIENT_ID || '',
+      });
+      setSidewallOutcome(outcome);
+
+      if (outcome.kind === 'completed') {
+        setSidewallStatus(`Completed (lighting: ${outcome.lighting ?? 'n/a'})`);
+        return;
+      }
+
+      if (outcome.kind === 'failed') {
+        setSidewallStatus(`Failed (${outcome.error?.code ?? 'UNKNOWN'})`);
+        if (outcome.error) setError(formatError(outcome.error));
+        return;
+      }
+
+      setSidewallStatus('Sidewall scan aborted');
+    } catch (_error) {
+      setSidewallStatus('Failed (unexpected error)');
+      setError('Unexpected sidewall scan error');
+    } finally {
+      setIsSidewallScanning(false);
+    }
+  }, [isSidewallScanning]);
+
   const canScan = isInitialized;
   const canFetchResult = isInitialized && !!measurementUUID;
-  const isBusy = isCheckingSupport || isInitializing || isScanning || isFetchingResult;
+  const isBusy =
+    isCheckingSupport ||
+    isInitializing ||
+    isScanning ||
+    isFetchingResult ||
+    isCheckingSidewallSupport ||
+    isSidewallScanning;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -257,6 +326,42 @@ export default function App(): React.JSX.Element {
             />
             <Text style={styles.actionStatus}>{resultStatus}</Text>
           </View>
+
+          <Text style={styles.sectionTitle}>Tire Sidewall (TSW)</Text>
+
+          <View style={styles.actionBlock}>
+            <AppButton
+              title="Check Sidewall Support"
+              onPress={handleSidewallSupportPress}
+              disabled={isBusy}
+              loading={isCheckingSidewallSupport}
+            />
+            <Text style={styles.actionStatus}>{sidewallSupportStatus}</Text>
+          </View>
+
+          <View style={styles.actionBlock}>
+            <AppButton
+              title="Sidewall Scan"
+              onPress={handleSidewallScanPress}
+              disabled={isBusy}
+              loading={isSidewallScanning}
+            />
+            <Text style={styles.actionStatus}>{sidewallStatus}</Text>
+          </View>
+
+          {sidewallOutcome?.kind === 'completed' ? (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Sidewall Result</Text>
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${sidewallOutcome.imageBase64}` }}
+                style={styles.sidewallImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.valueText}>Lighting: {sidewallOutcome.lighting ?? 'n/a'}</Text>
+              <Text style={styles.cardSubtitle}>Result JSON</Text>
+              <Text style={styles.codeText}>{sidewallOutcome.resultJson}</Text>
+            </View>
+          ) : null}
 
           {scanOutcome?.kind === 'ScanCompleted' ? (
             <View style={styles.card}>
@@ -355,8 +460,26 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 8,
+  },
   actionBlock: {
     gap: 8,
+  },
+  sidewallImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 10,
+    backgroundColor: '#0E161D',
+    marginVertical: 6,
+  },
+  codeText: {
+    color: '#B4C4CF',
+    fontSize: 12,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
   },
   actionStatus: {
     color: '#FFFFFF',

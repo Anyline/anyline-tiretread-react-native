@@ -11,7 +11,10 @@ if (!NativeAnylineTtrModule) {
       '- You have not run "pod install" after installing the package\n' +
       '- You need to rebuild the native project (npx react-native run-android / run-ios)\n' +
       '- The native project has not picked up React Native autolinking yet; try reinstalling dependencies and rebuilding the app\n' +
-      Platform.select({ ios: '- You are running in Expo Go which does not support native modules (use a dev client instead)\n', default: '' })
+      Platform.select({
+        ios: '- You are running in Expo Go which does not support native modules (use a dev client instead)\n',
+        default: '',
+      })
   );
 }
 
@@ -57,6 +60,11 @@ import type {
   ScanConfig,
   HeatmapStyle,
 } from './generated/tire_tread_config';
+import type {
+  TireSidewallConfig,
+  TireSidewallSupport,
+  TswScanOutcome,
+} from './generated/tire_sidewall';
 
 export type { Heatmap };
 
@@ -107,6 +115,17 @@ export type {
   HeatmapStyle,
 };
 
+export type {
+  EnvironmentLighting,
+  TireSidewallTexts,
+  TireSidewallConfig,
+  TireSidewallSupport,
+  TswScanOutcome,
+  TswScanCompleted,
+  TswScanAborted,
+  TswScanFailed,
+} from './generated/tire_sidewall';
+
 const AnylineTtrMobileWrapperReactNative = NativeAnylineTtrModule;
 
 export function isDeviceSupported(): Promise<SdkResult<boolean>> {
@@ -120,6 +139,7 @@ export function initialize(
   return AnylineTtrMobileWrapperReactNative.initialize({
     licenseKey,
     customTag: options?.customTag ?? null,
+    uploadTimeoutMillis: options?.uploadTimeoutMillis ?? null,
   });
 }
 
@@ -153,7 +173,9 @@ export function getHeatmap(
   });
 }
 
-export function setTestingConfig(config: Record<string, unknown>): Promise<void> {
+export function setTestingConfig(
+  config: Record<string, unknown>
+): Promise<void> {
   return AnylineTtrMobileWrapperReactNative.setTestingConfig(config);
 }
 
@@ -198,3 +220,46 @@ export function getSdkVersion(): Promise<string> {
 export function getWrapperVersion(): Promise<string> {
   return AnylineTtrMobileWrapperReactNative.getWrapperVersion();
 }
+
+/**
+ * Tire Sidewall (TSW) scanner — a standalone, on-device scanner that captures a
+ * single tire sidewall image, uploads it to the Anyline cloud, and returns the
+ * result synchronously.
+ *
+ * It is independent of tread-depth scanning: it does not require
+ * {@link initialize} and is authed by a separate cloud API `clientId` rather
+ * than the TTR license key.
+ */
+export const TireSidewall = {
+  /**
+   * Launches the sidewall scanner and resolves with the {@link TswScanOutcome}
+   * once the user completes, aborts, or the scan fails. `clientId` is the
+   * Anyline-provided cloud API client ID for the sidewall service.
+   */
+  scan(args: {
+    clientId: string;
+    config?: TireSidewallConfig | null;
+  }): Promise<TswScanOutcome> {
+    return AnylineTtrMobileWrapperReactNative.tireSidewallScan({
+      clientId: args.clientId,
+      configJson: args.config ? JSON.stringify(args.config) : null,
+    });
+  },
+
+  /**
+   * Reports whether the device can run the sidewall scanner. On Android this
+   * checks Google Play Services and the on-device runtime; on iOS it is always
+   * supported. Does not require SDK initialization.
+   */
+  isSupported(): Promise<TireSidewallSupport> {
+    return AnylineTtrMobileWrapperReactNative.tireSidewallIsSupported();
+  },
+
+  /**
+   * Shows the Google Play Services resolution dialog after a user-resolvable
+   * {@link isSupported} failure (Android only; a no-op on iOS).
+   */
+  resolvePlayServices(): Promise<void> {
+    return AnylineTtrMobileWrapperReactNative.tireSidewallResolvePlayServices();
+  },
+};
