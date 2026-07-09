@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TireSidewall.isSupported()` returns a `TireSidewallSupport` (on Android it checks Google Play Services and the on-device runtime; on iOS it is always supported). Does not require SDK initialization.
   - `TireSidewall.resolvePlayServices()` shows the Google Play Services resolution dialog after a user-resolvable `isSupported()` failure (Android only; a no-op on iOS).
   - New types: `TireSidewallConfig`, `TireSidewallTexts`, `TireSidewallSupport`, `TswScanOutcome`, and the `EnvironmentLighting` type.
+- **Configurable upload timeout** — new optional `uploadTimeoutMillis` on `initialize(licenseKey, { uploadTimeoutMillis })` for tuning the per-attempt image-upload timeout (each image is retried once). Default is 20000 ms (20 s).
 - `PLAY_SERVICES_UNAVAILABLE` error code (sidewall device-support failures on Android).
 
 ### Changed
