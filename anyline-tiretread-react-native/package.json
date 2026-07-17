@@ -1,6 +1,6 @@
 {
   "name": "@anyline/tire-tread-react-native-module",
-  "version": "15.3.0",
+  "version": "15.3.2",
   "description": "React Native SDK for Anyline Tire Tread scanning and depth measurement",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -42,9 +42,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepack": "bob build",
-    "release:publish:check": "npm run typecheck && npm pack --dry-run",
-    "release:publish": "node ./scripts/publish-npm.mjs"
+    "prepack": "bob build"
   },
   "keywords": [
     "react-native",
