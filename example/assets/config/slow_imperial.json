@@ -1,6 +1,7 @@
 {
   "uiConfig": {
-    "measurementSystem": "Metric",
+    "measurementSystem": "Imperial",
+    "scanSpeed": "Slow",
     "distanceIndicatorConfig": {
       "textOk": "Distance OK",
       "textMoveCloser": "Move closer",
@@ -13,6 +14,12 @@
       "textOk": "Tap to start recording",
       "textNotOkMetric": "Hold your phone around 20cm from the tire to start.",
       "textNotOkImperial": "Hold your phone around 8in from the tire to start."
+    },
+    "uploadViewConfig": {
+      "text": "Uploading..."
+    },
+    "orientationWarningConfig": {
+      "text": "Rotate to landscape mode."
     }
   }
 }
