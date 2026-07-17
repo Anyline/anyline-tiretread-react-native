@@ -1,25 +1,25 @@
 import React from 'react';
 import {
-  ActivityIndicator,
-  Image,
   Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
+  useColorScheme,
   View,
 } from 'react-native';
 
 import {
   getResult,
   getSdkVersion,
+  getWrapperVersion,
   initialize,
   isDeviceSupported,
   scan,
   TireSidewall,
   type ScanOptions,
-  type ScanOutcome,
   type SdkError,
   type TireTreadConfig,
   type TreadDepthResult,
@@ -27,35 +27,75 @@ import {
 } from '@anyline/tire-tread-react-native-module';
 import Config from 'react-native-config';
 
-const DEFAULT_CONFIG = require('./assets/config/sample_config_default.json') as TireTreadConfig;
+import { prettyJson, sizeFromResultJson, tireWidthFromResultJson } from './sidewall';
+
+import {
+  GroupHeader,
+  MetricTile,
+  MutedChip,
+  PrimaryButton,
+  SectionCard,
+  StatusChip,
+  SwitchRow,
+  type Theme,
+  Toast,
+  useTheme,
+} from './DevEx';
+import {
+  CheckIcon,
+  DownloadIcon,
+  FocusIcon,
+  LinkIcon,
+  RefreshIcon,
+  ScanFrameIcon,
+  TireSidewallIcon,
+  TireTreadIcon,
+} from './icons';
+import { uuidV4 } from './uuid';
+import {
+  AttachedChip,
+  Hairline,
+  Header,
+  JsonDisclosure,
+  MetaRow,
+  MonoField,
+  ScannerBadge,
+  SelectField,
+  SetupRow,
+  SidewallResultRow,
+  SoftButton,
+  StatusLine,
+  TireWidthField,
+} from './explorer-ui';
+
+// Scan-config JSONs bundled with the example. The empty option runs with the
+// SDK defaults; the picker in the Tire Tread card selects the base config.
+const CONFIGS: { label: string; config: TireTreadConfig | null }[] = [
+  { label: 'Default config', config: null },
+  {
+    label: 'classic_appearance.json',
+    config: require('./assets/config/classic_appearance.json') as TireTreadConfig,
+  },
+  {
+    label: 'full_config.json',
+    config: require('./assets/config/full_config.json') as TireTreadConfig,
+  },
+  {
+    label: 'slow_imperial.json',
+    config: require('./assets/config/slow_imperial.json') as TireTreadConfig,
+  },
+  {
+    label: 'tire_width_input_test.json',
+    config: require('./assets/config/tire_width_input_test.json') as TireTreadConfig,
+  },
+];
 const VERBOSE_SCAN_OPTIONS: ScanOptions = {
   enableDebugLogging: true,
 };
 
-type AppButtonProps = {
-  title: string;
-  onPress: () => void;
-  disabled: boolean;
-  loading?: boolean;
-};
-
-function AppButton({ title, onPress, disabled, loading = false }: AppButtonProps): React.JSX.Element {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.button,
-        (disabled || loading) && styles.buttonDisabled,
-        pressed && !disabled && !loading && styles.buttonPressed,
-      ]}
-    >
-      {loading ? <ActivityIndicator color="#FFFFFF" size="small" /> : null}
-      <Text style={styles.buttonText}>{loading ? `${title}...` : title}</Text>
-    </Pressable>
-  );
-}
+// RN's SafeAreaView does not inset for the Android status bar (and Android 15
+// draws edge-to-edge), so pad the top by the status-bar height there.
+const ANDROID_STATUS_BAR = Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0;
 
 function formatError(error: SdkError): string {
   return `${error.code}: ${error.message}`;
@@ -65,357 +105,458 @@ function formatNumber(value: number): string {
   return Number.isFinite(value) ? value.toFixed(2) : '-';
 }
 
+function buildTreadConfig(
+  base: TireTreadConfig,
+  correlationId: string | null,
+  tireWidth: number | null,
+): TireTreadConfig {
+  let config = base;
+  if (correlationId) {
+    config = { ...config, additionalContext: { ...(config.additionalContext ?? {}), correlationId } };
+  }
+  if (tireWidth != null) {
+    config = { ...config, scanConfig: { ...(config.scanConfig ?? {}), tireWidth } };
+  }
+  return config;
+}
+
+type StatusDetail = { text: string; color: string };
+
+function deviceSupportDetail(t: Theme, checked: boolean, supported: boolean): StatusDetail {
+  if (!checked) return { text: 'Not checked yet', color: t.textTertiary };
+  if (supported) return { text: 'Device is supported', color: t.success };
+  return { text: 'Device is not supported', color: t.danger };
+}
+
+function initDetail(t: Theme, initializing: boolean, initialized: boolean, failed: boolean): StatusDetail {
+  if (initializing) return { text: 'Initializing…', color: t.textTertiary };
+  if (initialized) return { text: 'Initialized · ready to scan', color: t.success };
+  if (failed) return { text: 'Initialization failed', color: t.danger };
+  return { text: 'Not initialized yet', color: t.textTertiary };
+}
+
 export default function App(): React.JSX.Element {
-  const [sdkVersion, setSdkVersion] = React.useState<string>('loading...');
-  const [isInitialized, setIsInitialized] = React.useState(false);
-  const [measurementUUID, setMeasurementUUID] = React.useState<string | null>(null);
-  const [scanOutcome, setScanOutcome] = React.useState<ScanOutcome | null>(null);
-  const [treadDepthResult, setTreadDepthResult] = React.useState<TreadDepthResult | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  const t = useTheme();
+  const scheme = useColorScheme();
+
+  const [sdkVersion, setSdkVersion] = React.useState('…');
+  const [pluginVersion, setPluginVersion] = React.useState('…');
+
+  const [includeCorrelationId, setIncludeCorrelationId] = React.useState(true);
+  const [correlationId, setCorrelationId] = React.useState(uuidV4);
+
+  const [configIndex, setConfigIndex] = React.useState(0);
+  const [tireWidth, setTireWidth] = React.useState<number | null>(null);
+  const [tireWidthFromSidewall, setTireWidthFromSidewall] = React.useState(false);
 
   const [isCheckingSupport, setIsCheckingSupport] = React.useState(false);
-  const [deviceSupportStatus, setDeviceSupportStatus] = React.useState('Not checked');
-  const [isInitializing, setIsInitializing] = React.useState(false);
-  const [isScanning, setIsScanning] = React.useState(false);
-  const [isFetchingResult, setIsFetchingResult] = React.useState(false);
-  const [initStatus, setInitStatus] = React.useState('Not initialised');
-  const [scanStatus, setScanStatus] = React.useState('Not scanned');
-  const [resultStatus, setResultStatus] = React.useState('No result requested');
+  const [supportChecked, setSupportChecked] = React.useState(false);
+  const [deviceSupported, setDeviceSupported] = React.useState(false);
 
-  const [isCheckingSidewallSupport, setIsCheckingSidewallSupport] = React.useState(false);
-  const [sidewallSupportStatus, setSidewallSupportStatus] = React.useState('Not checked');
+  const [isInitializing, setIsInitializing] = React.useState(false);
+  const [isInitialized, setIsInitialized] = React.useState(false);
+  const [initFailed, setInitFailed] = React.useState(false);
+
+  const [sidewallSupported, setSidewallSupported] = React.useState(true);
   const [isSidewallScanning, setIsSidewallScanning] = React.useState(false);
-  const [sidewallStatus, setSidewallStatus] = React.useState('Not scanned');
+  const [sidewallStatus, setSidewallStatus] = React.useState('');
+  const [sidewallIsError, setSidewallIsError] = React.useState(false);
   const [sidewallOutcome, setSidewallOutcome] = React.useState<TswScanOutcome | null>(null);
+
+  const [isScanning, setIsScanning] = React.useState(false);
+  const [treadStatus, setTreadStatus] = React.useState('');
+  const [treadIsError, setTreadIsError] = React.useState(false);
+  const [measurementUUID, setMeasurementUUID] = React.useState<string | null>(null);
+
+  const [isFetchingResult, setIsFetchingResult] = React.useState(false);
+  const [resultStatus, setResultStatus] = React.useState('');
+  const [resultIsError, setResultIsError] = React.useState(false);
+  const [treadDepthResult, setTreadDepthResult] = React.useState<TreadDepthResult | null>(null);
+
+  const [toast, setToast] = React.useState<string | null>(null);
+  const toastTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = React.useCallback((message: string) => {
+    setToast(message);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }, []);
 
   React.useEffect(() => {
     let mounted = true;
     getSdkVersion()
-      .then((version) => {
-        if (mounted) setSdkVersion(version || 'unknown');
+      .then((v: string) => {
+        if (mounted) setSdkVersion(v || 'unknown');
       })
       .catch(() => {
         if (mounted) setSdkVersion('unknown');
       });
+    getWrapperVersion()
+      .then((v: string) => {
+        if (mounted) setPluginVersion(v || 'unknown');
+      })
+      .catch(() => {
+        if (mounted) setPluginVersion('unknown');
+      });
+    TireSidewall.isSupported()
+      .then((s: { supported: boolean }) => {
+        if (mounted) setSidewallSupported(s.supported);
+      })
+      .catch(() => {});
     return () => {
       mounted = false;
+      if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, []);
 
   const handleDeviceSupportPress = React.useCallback(async () => {
     if (isCheckingSupport) return;
-
     setIsCheckingSupport(true);
-    setDeviceSupportStatus('Checking...');
-
     try {
       const res = await isDeviceSupported();
       if (res.ok) {
-        setDeviceSupportStatus(res.value ? 'Device is supported' : 'Device is NOT supported');
+        setDeviceSupported(res.value);
       } else {
-        setDeviceSupportStatus(`${res.error.code}: ${res.error.message}`);
+        setDeviceSupported(false);
+        showToast(formatError(res.error));
       }
+      setSupportChecked(true);
     } catch (_error) {
-      setDeviceSupportStatus('Failed (unexpected error)');
+      setDeviceSupported(false);
+      setSupportChecked(true);
+      showToast('Unexpected error checking device support');
     } finally {
       setIsCheckingSupport(false);
     }
-  }, [isCheckingSupport]);
+  }, [isCheckingSupport, showToast]);
 
   const handleInitPress = React.useCallback(async () => {
-    if (isInitialized || isInitializing) return;
-
-    setError(null);
+    if (isInitializing) return;
     setIsInitializing(true);
-    setInitStatus('Initialising...');
-
+    setInitFailed(false);
     try {
       const res = await initialize(Config.TTR_LICENSE_KEY || '');
       if (res.ok) {
         setIsInitialized(true);
-        setInitStatus('Initialised');
         return;
       }
-      setInitStatus(`Failed (${res.error.code})`);
-      setError(formatError(res.error));
+      setInitFailed(true);
+      showToast(formatError(res.error));
     } catch (_error) {
-      setInitStatus('Failed (unexpected error)');
-      setError('Unexpected init error');
+      setInitFailed(true);
+      showToast('Unexpected init error');
     } finally {
       setIsInitializing(false);
     }
-  }, [isInitialized, isInitializing]);
+  }, [isInitializing, showToast]);
 
   const handleScanPress = React.useCallback(async () => {
     if (!isInitialized || isScanning) return;
-
-    setError(null);
-    setScanOutcome(null);
+    setTreadStatus('');
     setMeasurementUUID(null);
     setTreadDepthResult(null);
+    setResultStatus('');
     setIsScanning(true);
-    setScanStatus('Scanning...');
-    setResultStatus('No result requested');
-
     try {
-      const outcome = await scan(DEFAULT_CONFIG, VERBOSE_SCAN_OPTIONS);
-      setScanOutcome(outcome);
-
+      const base = CONFIGS[configIndex].config ?? {};
+      const config = buildTreadConfig(base, includeCorrelationId ? correlationId : null, tireWidth);
+      const outcome = await scan(config, VERBOSE_SCAN_OPTIONS);
       if (outcome.kind === 'ScanCompleted') {
         setMeasurementUUID(outcome.measurementUUID);
-        setScanStatus('Scan completed');
+        setTreadStatus('Scan completed');
+        setTreadIsError(false);
         return;
       }
-
       if (outcome.kind === 'ScanFailed') {
-        setScanStatus(`Failed (${outcome.error.code})`);
-        setError(formatError(outcome.error));
+        setTreadStatus(`Scan failed (${outcome.error.code})`);
+        setTreadIsError(true);
+        showToast(formatError(outcome.error));
         return;
       }
-
-      setScanStatus('Scan aborted');
-      setError('Scan was aborted');
+      setTreadStatus('Scan aborted');
+      setTreadIsError(true);
     } catch (_error) {
-      setScanStatus('Failed (unexpected error)');
-      setError('Unexpected scan error');
+      setTreadStatus('Scan failed (unexpected error)');
+      setTreadIsError(true);
+      showToast('Unexpected scan error');
     } finally {
       setIsScanning(false);
     }
-  }, [isInitialized, isScanning]);
+  }, [
+    isInitialized,
+    isScanning,
+    showToast,
+    includeCorrelationId,
+    correlationId,
+    configIndex,
+    tireWidth,
+  ]);
 
   const handleGetResultPress = React.useCallback(async () => {
     if (!measurementUUID || isFetchingResult) return;
-
-    setError(null);
     setTreadDepthResult(null);
+    setResultStatus('');
     setIsFetchingResult(true);
-    setResultStatus('Fetching result...');
-
     try {
       const res = await getResult(measurementUUID);
       if (!res.ok) {
         setResultStatus(`Failed (${res.error.code})`);
-        setError(formatError(res.error));
+        setResultIsError(true);
+        showToast(formatError(res.error));
         return;
       }
       setTreadDepthResult(res.value);
-      setResultStatus(`Loaded (${res.value.measurementInfo.status})`);
+      setResultStatus(`Loaded · ${res.value.measurementInfo.status}`);
+      setResultIsError(false);
     } catch (_error) {
       setResultStatus('Failed (unexpected error)');
-      setError('Unexpected result error');
+      setResultIsError(true);
+      showToast('Unexpected result error');
     } finally {
       setIsFetchingResult(false);
     }
-  }, [measurementUUID, isFetchingResult]);
-
-  const handleSidewallSupportPress = React.useCallback(async () => {
-    if (isCheckingSidewallSupport) return;
-
-    setIsCheckingSidewallSupport(true);
-    setSidewallSupportStatus('Checking...');
-
-    try {
-      const support = await TireSidewall.isSupported();
-      if (support.supported) {
-        setSidewallSupportStatus('Sidewall scanning is supported');
-      } else if (support.userResolvable) {
-        setSidewallSupportStatus('Not supported — resolving Play Services...');
-        await TireSidewall.resolvePlayServices();
-      } else {
-        setSidewallSupportStatus(support.error ? formatError(support.error) : 'Not supported');
-      }
-    } catch (_error) {
-      setSidewallSupportStatus('Failed (unexpected error)');
-    } finally {
-      setIsCheckingSidewallSupport(false);
-    }
-  }, [isCheckingSidewallSupport]);
+  }, [measurementUUID, isFetchingResult, showToast]);
 
   const handleSidewallScanPress = React.useCallback(async () => {
     if (isSidewallScanning) return;
-
-    setError(null);
     setSidewallOutcome(null);
+    setSidewallStatus('');
     setIsSidewallScanning(true);
-    setSidewallStatus('Scanning...');
-
     try {
       // The sidewall scanner is standalone: it needs no initialize() and is
       // authed by its own cloud API client ID rather than the TTR license key.
       const outcome = await TireSidewall.scan({
         clientId: Config.TTR_SIDEWALL_CLIENT_ID || '',
+        config: includeCorrelationId ? { correlationId } : undefined,
       });
       setSidewallOutcome(outcome);
-
       if (outcome.kind === 'completed') {
-        setSidewallStatus(`Completed (lighting: ${outcome.lighting ?? 'n/a'})`);
+        const detectedWidth = tireWidthFromResultJson(outcome.resultJson);
+        if (detectedWidth != null) {
+          setTireWidth(detectedWidth);
+          setTireWidthFromSidewall(true);
+        }
+        setSidewallStatus(`Completed · lighting ${outcome.lighting ?? 'n/a'}`);
+        setSidewallIsError(false);
         return;
       }
-
       if (outcome.kind === 'failed') {
         setSidewallStatus(`Failed (${outcome.error?.code ?? 'UNKNOWN'})`);
-        if (outcome.error) setError(formatError(outcome.error));
+        setSidewallIsError(true);
+        if (outcome.error) showToast(formatError(outcome.error));
         return;
       }
-
       setSidewallStatus('Sidewall scan aborted');
+      setSidewallIsError(true);
     } catch (_error) {
       setSidewallStatus('Failed (unexpected error)');
-      setError('Unexpected sidewall scan error');
+      setSidewallIsError(true);
+      showToast('Unexpected sidewall scan error');
     } finally {
       setIsSidewallScanning(false);
     }
-  }, [isSidewallScanning]);
+  }, [isSidewallScanning, showToast, includeCorrelationId, correlationId]);
 
-  const canScan = isInitialized;
-  const canFetchResult = isInitialized && !!measurementUUID;
-  const isBusy =
-    isCheckingSupport ||
-    isInitializing ||
-    isScanning ||
-    isFetchingResult ||
-    isCheckingSidewallSupport ||
-    isSidewallScanning;
+  const support = deviceSupportDetail(t, supportChecked, deviceSupported);
+  const init = initDetail(t, isInitializing, isInitialized, initFailed);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <Image
-            source={require('./assets/anyline_logo.png')}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
-
-          <View style={styles.actionBlock}>
-            <AppButton
-              title="Check Device Support"
-              onPress={handleDeviceSupportPress}
-              disabled={isBusy}
-              loading={isCheckingSupport}
-            />
-            <Text style={styles.actionStatus}>{deviceSupportStatus}</Text>
-          </View>
-
-          <View style={styles.actionBlock}>
-            <AppButton
-              title="Initialise"
-              onPress={handleInitPress}
-              disabled={isInitialized || isBusy}
-              loading={isInitializing}
-            />
-            <Text style={styles.actionStatus}>{initStatus}</Text>
-          </View>
-
-          <View style={styles.actionBlock}>
-            <AppButton
-              title="Scan"
-              onPress={handleScanPress}
-              disabled={!canScan || isBusy}
-              loading={isScanning}
-            />
-            <Text style={styles.actionStatus}>{scanStatus}</Text>
-          </View>
-
-          <View style={styles.actionBlock}>
-            <AppButton
-              title="Get Result"
-              onPress={handleGetResultPress}
-              disabled={!canFetchResult || isBusy}
-              loading={isFetchingResult}
-            />
-            <Text style={styles.actionStatus}>{resultStatus}</Text>
-          </View>
-
-          <Text style={styles.sectionTitle}>Tire Sidewall (TSW)</Text>
-
-          <View style={styles.actionBlock}>
-            <AppButton
-              title="Check Sidewall Support"
-              onPress={handleSidewallSupportPress}
-              disabled={isBusy}
-              loading={isCheckingSidewallSupport}
-            />
-            <Text style={styles.actionStatus}>{sidewallSupportStatus}</Text>
-          </View>
-
-          <View style={styles.actionBlock}>
-            <AppButton
-              title="Sidewall Scan"
-              onPress={handleSidewallScanPress}
-              disabled={isBusy}
-              loading={isSidewallScanning}
-            />
-            <Text style={styles.actionStatus}>{sidewallStatus}</Text>
-          </View>
-
-          {sidewallOutcome?.kind === 'completed' ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Sidewall Result</Text>
-              <Image
-                source={{ uri: `data:image/jpeg;base64,${sidewallOutcome.imageBase64}` }}
-                style={styles.sidewallImage}
-                resizeMode="contain"
+    <SafeAreaView style={[styles.container, { backgroundColor: t.pageBg }]}>
+      <StatusBar
+        barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={t.pageBg}
+      />
+      <Header />
+      <ScrollView contentContainerStyle={styles.content}>
+        <GroupHeader
+          number={1}
+          title="Set up"
+          trailing={
+            isInitialized ? (
+              <StatusChip text="Complete" color={t.success} icon={<CheckIcon color={t.success} size={13} />} />
+            ) : undefined
+          }
+        />
+        <SectionCard>
+          <MetaRow label="TTR SDK version" value={sdkVersion} />
+          <Hairline />
+          <MetaRow label="TTR React Native Plugin Version" value={pluginVersion} />
+          <Hairline />
+          <SetupRow
+            done={supportChecked && deviceSupported}
+            title="Check device support"
+            detail={support.text}
+            detailColor={support.color}
+            button={
+              <SoftButton
+                label={supportChecked ? 'Re-check' : 'Check'}
+                busy={isCheckingSupport}
+                onPress={handleDeviceSupportPress}
               />
-              <Text style={styles.valueText}>Lighting: {sidewallOutcome.lighting ?? 'n/a'}</Text>
-              <Text style={styles.cardSubtitle}>Result JSON</Text>
-              <Text style={styles.codeText}>{sidewallOutcome.resultJson}</Text>
-            </View>
-          ) : null}
+            }
+          />
+          <Hairline />
+          <SetupRow
+            done={isInitialized}
+            title="Initialize SDK"
+            detail={init.text}
+            detailColor={init.color}
+            button={
+              <SoftButton
+                label={isInitialized ? 'Re-init' : 'Initialize'}
+                busy={isInitializing}
+                onPress={handleInitPress}
+              />
+            }
+          />
+        </SectionCard>
 
-          {scanOutcome?.kind === 'ScanCompleted' ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Scan Summary</Text>
-              <Text style={styles.valueText}>Measurement UUID: {scanOutcome.measurementUUID}</Text>
-            </View>
-          ) : null}
-
-          {treadDepthResult ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Result</Text>
-              <Text style={styles.cardSubtitle}>
-                Status: {treadDepthResult.measurementInfo.status}
+        <SectionCard
+          title="Correlation ID"
+          subtitle="Links one sidewall + one tread scan as a pair. Applies to both scanners below."
+          leading={
+            <ScannerBadge color={t.correlation}>
+              <LinkIcon color={t.correlation} size={24} />
+            </ScannerBadge>
+          }
+          status={<MutedChip text="Optional" />}
+        >
+          <SwitchRow
+            label="Include correlationId"
+            value={includeCorrelationId}
+            onValueChange={setIncludeCorrelationId}
+          />
+          {includeCorrelationId ? (
+            <View style={styles.correlationRow}>
+              <Text
+                style={[styles.codeBlock, styles.grow, { color: t.textSecondary, backgroundColor: t.inset }]}
+              >
+                {correlationId}
               </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setCorrelationId(uuidV4())}
+                style={styles.refreshBtn}
+              >
+                <RefreshIcon color={t.correlation} size={20} />
+              </Pressable>
+            </View>
+          ) : null}
+        </SectionCard>
+
+        <GroupHeader number={2} title="Scan" hint="Two independent scanners" />
+        <SectionCard
+          title="Tire Sidewall"
+          subtitle="Reads tire size markings off the sidewall"
+          leading={
+            <ScannerBadge>
+              <TireSidewallIcon color={t.brand} size={24} />
+            </ScannerBadge>
+          }
+          status={
+            sidewallSupported ? (
+              <StatusChip text="Supported" color={t.success} />
+            ) : (
+              <StatusChip text="Not supported" color={t.danger} />
+            )
+          }
+        >
+          {includeCorrelationId ? <AttachedChip /> : null}
+          <PrimaryButton
+            title="Scan Tire Sidewall"
+            icon={<FocusIcon color={t.onAccent} />}
+            onPress={handleSidewallScanPress}
+            loading={isSidewallScanning}
+          />
+          {sidewallStatus ? <StatusLine text={sidewallStatus} isError={sidewallIsError} /> : null}
+          {sidewallOutcome?.kind === 'completed' ? (
+            <>
+              <SidewallResultRow
+                imageBase64={sidewallOutcome.imageBase64}
+                size={sizeFromResultJson(sidewallOutcome.resultJson)}
+                width={tireWidthFromResultJson(sidewallOutcome.resultJson)}
+              />
+              <JsonDisclosure json={prettyJson(sidewallOutcome.resultJson)} />
+            </>
+          ) : null}
+        </SectionCard>
+        <SectionCard
+          title="Tire Tread"
+          subtitle="Measures tread depth across the tire"
+          leading={
+            <ScannerBadge>
+              <TireTreadIcon color={t.brand} size={24} />
+            </ScannerBadge>
+          }
+          status={
+            isInitialized ? <StatusChip text="Ready" color={t.success} /> : <MutedChip text="Init required" />
+          }
+        >
+          {includeCorrelationId ? <AttachedChip /> : null}
+          <SelectField
+            label="Scan config (JSON)"
+            value={CONFIGS[configIndex].label}
+            options={CONFIGS.map((c) => c.label)}
+            onSelect={setConfigIndex}
+          />
+          <TireWidthField
+            value={tireWidth}
+            fromSidewall={tireWidthFromSidewall}
+            onChange={(v) => {
+              setTireWidth(v);
+              setTireWidthFromSidewall(false);
+            }}
+          />
+          <PrimaryButton
+            title="Scan"
+            icon={<ScanFrameIcon color={t.onAccent} />}
+            onPress={handleScanPress}
+            disabled={!isInitialized}
+            loading={isScanning}
+          />
+          {treadStatus ? <StatusLine text={treadStatus} isError={treadIsError} /> : null}
+          {measurementUUID ? <MonoField label="MEASUREMENT UUID" value={measurementUUID} /> : null}
+        </SectionCard>
+
+        <GroupHeader number={3} title="Results" hint="From the Tread scan above" />
+        <SectionCard>
+          <PrimaryButton
+            title="Get Result"
+            variant="outlined"
+            icon={<DownloadIcon color={t.brand} />}
+            onPress={handleGetResultPress}
+            disabled={!isInitialized || !measurementUUID}
+            loading={isFetchingResult}
+          />
+          {resultStatus ? <StatusLine text={resultStatus} isError={resultIsError} /> : null}
+          {treadDepthResult ? (
+            <>
               {treadDepthResult.measurementMetadata?.movementDirection ? (
-                <Text style={styles.valueText}>
+                <Text style={[styles.caption, { color: t.textTertiary }]}>
                   Direction: {treadDepthResult.measurementMetadata.movementDirection}
                 </Text>
               ) : null}
-              <View style={styles.metricGrid}>
-                <View style={styles.metricCell}>
-                  <Text style={styles.metricLabel}>Global mm</Text>
-                  <Text style={styles.metricValue}>{formatNumber(treadDepthResult.global.value_mm)}</Text>
-                </View>
-                <View style={styles.metricCell}>
-                  <Text style={styles.metricLabel}>Global inch</Text>
-                  <Text style={styles.metricValue}>{formatNumber(treadDepthResult.global.value_inch)}</Text>
-                </View>
-                <View style={styles.metricCell}>
-                  <Text style={styles.metricLabel}>Global 1/32"</Text>
-                  <Text style={styles.metricValue}>{formatNumber(treadDepthResult.global.value_inch_32nds)}</Text>
-                </View>
+              <View style={styles.metricRow}>
+                <MetricTile label="Global mm" value={formatNumber(treadDepthResult.global.value_mm)} highlight />
+                <MetricTile label="Global in" value={formatNumber(treadDepthResult.global.value_inch)} />
+                <MetricTile label={'1/32"'} value={formatNumber(treadDepthResult.global.value_inch_32nds)} />
               </View>
-              <Text style={styles.cardSubtitle}>Regions</Text>
               {treadDepthResult.regions.map((region, index) => (
-                <View key={`region-${index}`} style={styles.regionRow}>
-                  <Text style={styles.regionName}>Region {index + 1}</Text>
-                  <Text style={styles.regionValue}>
+                <View
+                  key={`region-${index}`}
+                  style={[styles.regionRow, { backgroundColor: t.inset }]}
+                >
+                  <Text style={[styles.regionName, { color: t.textPrimary }]}>Region {index + 1}</Text>
+                  <Text style={[styles.regionValue, { color: t.textSecondary }]}>
                     {region.available ? `${formatNumber(region.value_mm)} mm` : 'Unavailable'}
                   </Text>
                 </View>
               ))}
-            </View>
+            </>
           ) : null}
-
-          {error ? (
-            <View style={styles.cardError}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-        </ScrollView>
-
-        <Text style={styles.footer}>SDK Version: {sdkVersion}</Text>
-      </View>
+        </SectionCard>
+      </ScrollView>
+      {toast ? <Toast message={toast} /> : null}
     </SafeAreaView>
   );
 }
@@ -423,160 +564,51 @@ export default function App(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
-  },
-  screen: {
-    flex: 1,
-    position: 'relative',
+    paddingTop: ANDROID_STATUS_BAR,
   },
   content: {
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 80,
-  },
-  headerLogo: {
-    width: '100%',
-    height: 72,
-    marginBottom: 8,
-  },
-  button: {
-    minHeight: 52,
-    borderRadius: 14,
-    backgroundColor: '#0099FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
     gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 40,
   },
-  buttonPressed: {
-    opacity: 0.85,
+  grow: {
+    flex: 1,
   },
-  buttonDisabled: {
-    backgroundColor: '#3D5F73',
+  codeBlock: {
+    fontSize: 11,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
+    borderRadius: 10,
+    padding: 11,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  sectionTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 8,
-  },
-  actionBlock: {
+  correlationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
-  sidewallImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 10,
-    backgroundColor: '#0E161D',
-    marginVertical: 6,
+  refreshBtn: {
+    padding: 8,
   },
-  codeText: {
-    color: '#B4C4CF',
+  caption: {
     fontSize: 12,
-    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
   },
-  actionStatus: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    textAlign: 'center',
-    opacity: 0.9,
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: '#1E2A32',
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: '#0B1116',
-    gap: 4,
-  },
-  cardError: {
-    borderWidth: 1,
-    borderColor: '#F87171',
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: '#2B1212',
-  },
-  cardTitle: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  metricGrid: {
+  metricRow: {
     flexDirection: 'row',
     gap: 8,
-  },
-  metricCell: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#22313C',
-    borderRadius: 10,
-    backgroundColor: '#0E161D',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-  },
-  metricLabel: {
-    color: '#B4C4CF',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  metricValue: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
   },
   regionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1E2A32',
     borderRadius: 10,
-    backgroundColor: '#0E161D',
     paddingVertical: 8,
     paddingHorizontal: 10,
-    marginTop: 6,
   },
   regionName: {
-    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   regionValue: {
-    color: '#FFFFFF',
     fontSize: 13,
-  },
-  valueText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  errorText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 14,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
