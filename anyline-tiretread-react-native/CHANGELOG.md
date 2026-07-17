@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.3.2] - 2026-07-17
+
+### Changed
+- Updated the bundled Anyline Tire Tread SDK to **15.3.2** (Android & iOS). Notable SDK changes since 15.3.0:
+  - Tire Sidewall Scanner: drastically faster scanner start, especially on older devices (Android & iOS).
+  - Tire Sidewall Scanner: more reliable captures when the device moves slightly during the capture (Android & iOS).
+
+### Fixed
+- Bundled SDK — Android:
+  - Tire Sidewall Scanner: fixed a freeze (ANR) that could occur when closing the scanner during an active scan, and a related rare crash.
+  - Tire Sidewall Scanner: fixed the scanner sometimes opening with a black camera preview that never recovered.
+- Bundled SDK — iOS:
+  - Tire Sidewall Scanner: fixed the camera remaining active after the scanner was closed.
+  - Tire Sidewall Scanner: fixed the camera preview keeping a stale orientation when the device is rotated by 180°.
+  - `isDeviceSupported()` no longer reports a supported device as unsupported on iOS patch releases such as 18.1.1 (from SDK 15.3.1).
+
+### Dependencies
+
+Tire Tread SDK 15.3.2: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html#15-3-2-2026-07-16).
+
 ## [15.3.0] - 2026-07-09
 
 ### Added

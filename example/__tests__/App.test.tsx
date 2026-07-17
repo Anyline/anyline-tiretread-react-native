@@ -3,6 +3,7 @@
  */
 
 import React, { act } from 'react';
+import { Text } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 import App from '../App';
 
@@ -22,6 +23,8 @@ jest.mock('@anyline/tire-tread-react-native-module', () => ({
     },
   })),
   getSdkVersion: jest.fn(async () => '15.0.0'),
+  getWrapperVersion: jest.fn(async () => '15.3.0'),
+  isDeviceSupported: jest.fn(async () => ({ ok: true, value: true })),
   initialize: jest.fn(async () => ({ ok: true, value: null })),
   scan: jest.fn(async () => ({
     kind: 'ScanCompleted',
@@ -34,8 +37,26 @@ jest.mock('@anyline/tire-tread-react-native-module', () => ({
   },
 }), { virtual: true });
 
-test('renders correctly', async () => {
+test('renders the three numbered groups and both scanner cards', async () => {
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
-    ReactTestRenderer.create(<App />);
+    renderer = ReactTestRenderer.create(<App />);
   });
+
+  const texts = renderer.root
+    .findAllByType(Text)
+    .map((node) => node.props.children)
+    .filter((child): child is string => typeof child === 'string');
+
+  for (const label of [
+    'TireTread API Explorer',
+    'SET UP',
+    'Correlation ID',
+    'SCAN',
+    'RESULTS',
+    'Tire Sidewall',
+    'Tire Tread',
+  ]) {
+    expect(texts).toContain(label);
+  }
 });
