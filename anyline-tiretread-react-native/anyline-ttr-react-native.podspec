@@ -21,6 +21,6 @@ Pod::Spec.new do |s|
 
   s.dependency "React-Core"
 
-  s.dependency 'AnylineTireTreadSdk', '~> 15.3.2'
+  s.dependency 'AnylineTireTreadSdk', '~> 15.3.3'
 
 end
