@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.4.0] - 2026-08-26
+
+### Changed
+- Updated the bundled Anyline Tire Tread SDK to **15.4.0** (Android & iOS). Notable SDK changes:
+  - Tire Sidewall Scanner: the scan result `details` can now include `runflat`, `threePeakMountainSnowflake` (the 3PMSF marking), and `mudAndSnow` (the M+S marking) when they can be reliably determined for the recognized tire. This is a backend-side change - the fields arrive in `resultJson` on every SDK version; a missing field means unknown, not `false`.
+  - `Response.Error` and `Response.Exception` now provide a human-readable `toString()`, surfacing the error code, error message, and wrapped exception.
+
+### Dependencies
+Tire Tread SDK 15.4.0: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html#15-4-0-2026-08-26).
+
 ## [15.3.3] - 2026-07-22
 
 ### Changed

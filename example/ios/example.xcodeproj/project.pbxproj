@@ -259,7 +259,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 15003003;
+				CURRENT_PROJECT_VERSION = 15004000;
 				DEVELOPMENT_TEAM = 35RHL53WRE;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				ENABLE_BITCODE = NO;
@@ -269,7 +269,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 15.3.3;
+				MARKETING_VERSION = 15.4.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -289,7 +289,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 15003003;
+				CURRENT_PROJECT_VERSION = 15004000;
 				DEVELOPMENT_TEAM = 35RHL53WRE;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				INFOPLIST_FILE = example/Info.plist;
@@ -298,7 +298,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 15.3.3;
+				MARKETING_VERSION = 15.4.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
