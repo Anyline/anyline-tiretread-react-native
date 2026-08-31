@@ -12,14 +12,14 @@ platform :ios, "13.4"
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
+if !linkage.nil? && !linkage.empty?
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
 end
 
 target 'example' do
   config = use_native_modules!
-  pod 'AnylineTireTreadSdk', '~> 15.4.0'
+  # No AnylineTireTreadSdk pod needed: the autolinked wrapper vendors the SDK.
 
   use_react_native!(
     :path => config[:reactNativePath],
