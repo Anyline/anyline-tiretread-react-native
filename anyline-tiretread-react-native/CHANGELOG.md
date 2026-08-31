@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.5.0] - 2026-08-31
+
+### Changed
+- Updated the bundled Anyline Tire Tread SDK to **15.5.0** (Android & iOS). No functional SDK changes in this version.
+- [iOS] The Anyline Tire Tread SDK is now bundled as a prebuilt `xcframework` that the plugin downloads during `pod install`, instead of being resolved from CocoaPods Trunk. The download is verified against a SHA-256 checksum pinned in the plugin's podspec. Your integration steps are unchanged: install the plugin and run `pod install`.
+- [iOS] If your app's `Podfile` declares `pod 'AnylineTireTreadSdk'`, you can remove that line. The plugin now supplies the SDK itself, and the entry is no longer needed.
+- [iOS] The README now covers two installation failure modes that come with downloading the SDK at `pod install` time:
+  - A deleted `AnylineTireTreadSdk.xcframework` is not restored while `ios/Pods` is up to date, because CocoaPods skips the plugin's download step when it considers the plugin already installed. Remove `ios/Pods/Manifest.lock` and run `pod install` again.
+  - A checksum mismatch aborts the install without leaving a partial framework behind. Retry first; a proxy that rewrites HTTPS responses can also cause this.
+
+### Dependencies
+Tire Tread SDK 15.5.0: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html#15-5-0-2026-08-31).
+
 ## [15.4.0] - 2026-08-26
 
 ### Changed

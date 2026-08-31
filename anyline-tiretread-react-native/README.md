@@ -41,6 +41,53 @@ allprojects {
 cd ios && pod install
 ```
 
+The module ships the Anyline Tire Tread SDK: `pod install` downloads a prebuilt `AnylineTireTreadSdk.xcframework` from the Anyline CDN and checks it against a SHA-256 set in the module's podspec.
+
+If your `Podfile` declares `pod 'AnylineTireTreadSdk'`, remove that line, since the module itself would supply the SDK.
+
+#### iOS installation troubleshooting
+
+Two things can go wrong because the SDK arrives during `pod install`.
+
+**The framework is missing and `pod install` will not fetch it again.**
+
+The plugin downloads the SDK from its podspec's `prepare_command`, and CocoaPods
+runs that step only when it *installs* the plugin. Usually it doesn't: when
+`Podfile.lock` and `ios/Pods/Manifest.lock` agree, CocoaPods reuses what it
+already has. The xcframework also sits next to the plugin in `node_modules`,
+outside `ios/Pods`, so CocoaPods never checks whether it is still there.
+
+Delete the framework, or let a cleaning script remove it, and the next
+`pod install` reports success while the build fails for a missing SDK.
+
+Look for the plugin's line in the `pod install` output:
+
+```
+Using anyline-ttr-react-native (15.3.3)       skipped, nothing was fetched
+Installing anyline-ttr-react-native (15.3.3)  ran, the framework is present
+```
+
+CocoaPods hides the download step's own output, so that line is the only
+confirmation you get.
+
+To force the reinstall, delete the manifest and run again:
+
+```sh
+rm -f ios/Pods/Manifest.lock
+cd ios && pod install
+```
+
+Changing the plugin's version does the same thing, for the same reason: it makes
+CocoaPods install the plugin instead of reusing it.
+
+**`pod install` fails with a checksum mismatch.**
+
+```
+error: checksum mismatch for AnylineTireTreadSdk.xcframework <version>
+```
+
+A corrupted or truncated download is the usual cause, so first do a retry. A proxy that rewrites HTTPS responses may also trigger this. If the same issue re-occurs on a clean network, [contact Anyline support](https://anyline.com/support) with the version and both checksums from the error. Do not edit the pinned checksum to get around it: that is the check guaranteeing that you are building against the exact binary we published.
+
 ### Camera Permissions
 
 The scan UI requires camera access. Configure permissions before calling `scan`.
