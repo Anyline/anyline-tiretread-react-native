@@ -3,15 +3,15 @@ import PackageDescription
 
 let package = Package(
   name: "TTRModuleImpl",
-  platforms: [.iOS(.v14)],
+  platforms: [.iOS(.v15)],
   products: [
     .library(name: "TTRModuleImpl", targets: ["TTRModuleImpl"]),
   ],
   targets: [
     .binaryTarget(
       name: "AnylineTireTreadSdk",
-      url: "https://ttr-sdk-ios.anyline.io/stable/15.5.0/AnylineTireTreadSdk_spm_15.5.0.zip",
-      checksum: "16835a6b486db7bef1fc939042db072f5101b6b318eee2f67b1702068ea0ab22"
+      url: "https://ttr-sdk-ios.anyline.io/stable/16.0.0/AnylineTireTreadSdk_spm_16.0.0.zip",
+      checksum: "a6845a1f554c46001f1ce2feb5d172c989269ed42931c55583218badc912799c"
     ),
     .target(
       name: "TTRModuleImpl",

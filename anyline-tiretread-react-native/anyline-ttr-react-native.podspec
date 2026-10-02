@@ -3,8 +3,8 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 # Bundled SDK pin. Updated together at release time.
-anyline_ttr_sdk_version  = '15.5.0'
-anyline_ttr_sdk_checksum = '16835a6b486db7bef1fc939042db072f5101b6b318eee2f67b1702068ea0ab22'
+anyline_ttr_sdk_version  = '16.0.0'
+anyline_ttr_sdk_checksum = 'a6845a1f554c46001f1ce2feb5d172c989269ed42931c55583218badc912799c'
 
 Pod::Spec.new do |s|
   s.name         = "anyline-ttr-react-native"
@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "13.4" }
+  s.platforms    = { :ios => "15.0" }
   s.source       = { :git => "https://github.com/Anyline/anyline-tiretread-react-native.git", :tag => "#{s.version}" }
   s.module_name  = "AnylineTtrMobileWrapperReactNative"
 

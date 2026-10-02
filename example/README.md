@@ -2,6 +2,8 @@
 
 Minimal React Native app demonstrating the [@anyline/tire-tread-react-native-module](../anyline-tiretread-react-native/README.md) module.
 
+The app uses React Native 0.83.10 with the New Architecture. On iOS it uses the scene life cycle (`SceneDelegate`) and targets iOS 15.1.
+
 ## Prerequisites
 
 - Anyline license key from [anyline.com](https://anyline.com)
