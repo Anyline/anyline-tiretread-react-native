@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [16.0.0] - 2026-10-02
+
+### Breaking Changes
+
+- **[iOS] Minimum deployment target raised to 15.0** (was 13.4). Xcode 27 rejects deployment targets below 15.0, and the bundled Anyline Tire Tread SDK now requires iOS 15.0.
+
+  **Migration Required**:
+  - Set your app's iOS deployment target to 15.0 or later, in your app target and in your `Podfile` (`platform :ios, '15.0'`). A `Podfile` that uses `min_ios_version_supported` already gets 15.1 on React Native 0.76 and later.
+  - If your app must support iOS versions below 15.0, stay on 15.5.0.
+
+### Changed
+
+- Updated the bundled Anyline Tire Tread SDK to **16.0.0** (Android & iOS).
+- [iOS] If you build your app with Xcode 27, your own app must adopt the UIKit scene-based life cycle. This is an Apple requirement that neither the SDK nor this module can do for you. See Apple's [Migrating to the UIKit scene-based life cycle](https://developer.apple.com/documentation/technotes/tn3187-migrating-to-the-uikit-scene-based-life-cycle).
+- The optional `expo` peer dependency now starts at SDK 52 (was 50). Expo SDK 50 and 51 ship React Native 0.73 and 0.74, which the `react-native >=0.75` peer range already excluded.
+- [iOS] The README now lists the React Native versions that compile on Xcode 26.6 and later: 0.83.5 or a later 0.83 patch, and 0.85 or later. Other versions fail inside React Native itself, with or without this module.
+
+### Fixed
+
+- [iOS] Fixed landscape scanning in apps built with Xcode 27 and running on iOS 27. In landscape the rotate-device warning stayed on screen and the scan never started. Apps built with Xcode 26 or earlier are unaffected.
+- [iOS] Fixed the scan screen closing when the app lost focus before a scan had started, for example right after the camera permission was granted on iOS 27.
+- [iOS] Fixed the torch staying on after closing the scan screen shortly after opening it.
+
 ## [15.5.0] - 2026-08-31
 
 ### Changed

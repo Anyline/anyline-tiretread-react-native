@@ -13,7 +13,16 @@ Measure tire tread depth from a smartphone camera. The SDK captures frames on-de
 - Camera with autofocus and 1080p capability
 - Stable internet connection
 - **Android** 6.0+ (API 23)
-- **iOS** 13.4+
+- **iOS** 15.0+
+
+### Building for iOS with Xcode 26.6 or Later
+
+Some React Native versions do not compile on Xcode 26.6 or later, with or without this module. Use a React Native version that bundles `fmt` 12.1.0:
+
+- React Native 0.83.5 or a later 0.83 patch (Expo SDK 55.0.31 and later ship 0.83.10)
+- React Native 0.85 or later (Expo SDK 56 and later)
+
+React Native 0.76 through 0.82, and 0.84, bundle `fmt` 11.0.2, which fails with `call to consteval function ... is not a constant expression`. On Xcode 27, React Native 0.75 fails as well: its pods stay at iOS 13.4, and Xcode 27 rejects deployment targets below 15.0.
 
 ## Installation
 
@@ -360,7 +369,7 @@ The Anyline Maven repository is not in your Gradle config. Add `maven { url "htt
 <details>
 <summary>iOS build fails: pod not found</summary>
 
-Run `pod repo update` then `pod install` again. Ensure your Podfile's platform is set to iOS 13.4 or higher.
+Run `pod repo update` then `pod install` again. Ensure your Podfile's platform is set to iOS 15.0 or higher.
 </details>
 
 ## Expo
