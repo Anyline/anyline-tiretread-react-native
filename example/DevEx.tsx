@@ -157,9 +157,10 @@ type SwitchRowProps = {
   sub?: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
+  disabled?: boolean;
 };
 
-export function SwitchRow({ label, sub, value, onValueChange }: SwitchRowProps): React.JSX.Element {
+export function SwitchRow({ label, sub, value, onValueChange, disabled = false }: SwitchRowProps): React.JSX.Element {
   const t = useTheme();
   return (
     <View style={styles.switchRow}>
@@ -167,7 +168,7 @@ export function SwitchRow({ label, sub, value, onValueChange }: SwitchRowProps):
         <Text style={[styles.fieldLabel, { color: t.textPrimary }]}>{label}</Text>
         {sub ? <Text style={[styles.subText, { color: t.textTertiary }]}>{sub}</Text> : null}
       </View>
-      <Switch value={value} onValueChange={onValueChange} />
+      <Switch value={value} onValueChange={onValueChange} disabled={disabled} />
     </View>
   );
 }

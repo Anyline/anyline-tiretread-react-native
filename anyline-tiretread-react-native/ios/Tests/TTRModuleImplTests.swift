@@ -32,6 +32,7 @@ final class FakeRuntime: TTRRuntimeProtocol {
   var lastTreadDepthRegions: [TreadResultRegion]?
 
   var lastInitUploadTimeoutMillis: Int64?
+  var lastInitShoulderWearEnabled: Bool?
 
   func initialize(
     licenseKey: String,
@@ -42,6 +43,7 @@ final class FakeRuntime: TTRRuntimeProtocol {
     lastInitCustomTag = options.customTag
     lastInitWrapperVersion = options.wrapperInfo?.version
     lastInitUploadTimeoutMillis = options.uploadTimeoutMillis
+    lastInitShoulderWearEnabled = options.shoulderWearEnabled
     onComplete(nextInit)
   }
 
@@ -193,6 +195,7 @@ final class TTRModuleImplTests: XCTestCase {
       fakeRuntime.lastInitUploadTimeoutMillis,
       InitOptions.companion.DEFAULT_UPLOAD_TIMEOUT_MILLIS
     )
+    XCTAssertEqual(fakeRuntime.lastInitShoulderWearEnabled, false)
   }
 
   func testInitializeForwardsExplicitUploadTimeoutMillis() {
@@ -208,6 +211,21 @@ final class TTRModuleImplTests: XCTestCase {
 
     waitForExpectations(timeout: 2)
     XCTAssertEqual(fakeRuntime.lastInitUploadTimeoutMillis, 30000)
+  }
+
+  func testInitializeForwardsShoulderWearEnabled() {
+    let expectation = expectation(description: "initialize completes")
+    let options: NSDictionary = [
+      "licenseKey": "abc-license",
+      "shoulderWearEnabled": true,
+    ]
+
+    impl.initialize(options: options) { _ in
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 2)
+    XCTAssertEqual(fakeRuntime.lastInitShoulderWearEnabled, true)
   }
 
   func testResultForwardsUuidAndExplicitTimeout() {

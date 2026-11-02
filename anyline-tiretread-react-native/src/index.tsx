@@ -23,6 +23,7 @@ import type { InitOptions } from './generated/init_options';
 import type {
   TreadDepthResult,
   TreadResultRegion,
+  ShoulderWear,
   TreadDepthFeedbackRegion,
   MeasurementInfo,
   MeasurementMetadata,
@@ -73,6 +74,7 @@ export type { InitOptions };
 export type {
   TreadDepthResult,
   TreadResultRegion,
+  ShoulderWear,
   TreadDepthFeedbackRegion,
   MeasurementInfo,
   MeasurementMetadata,
@@ -140,6 +142,7 @@ export function initialize(
     licenseKey,
     customTag: options?.customTag ?? null,
     uploadTimeoutMillis: options?.uploadTimeoutMillis ?? null,
+    shoulderWearEnabled: options?.shoulderWearEnabled ?? null,
   });
 }
 

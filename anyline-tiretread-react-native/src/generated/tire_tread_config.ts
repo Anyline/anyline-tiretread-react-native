@@ -40,6 +40,22 @@ export interface UIConfig {
 export type Appearance = 'Classic' | 'Neon';
 
 export interface DistanceIndicatorConfig {
+  /** Neon UI only. Shown during the scan when the distance cannot be determined. Default "Incorrect distance". */
+  textIncorrectDistance?: string;
+  /** Neon UI only. Shown before the scan when the distance is not right, imperial. Default "Keep distance at 8 in". */
+  textKeepDistanceImperial?: string;
+  /** Neon UI only. Shown before the scan when the distance is not right, metric. Default "Keep distance at 20 cm". */
+  textKeepDistanceMetric?: string;
+  /**
+   * Neon UI only. Added after `textMoveAway` / `textMoveCloser` with " - " when much too close or too far during
+   * the scan, imperial. An empty string shows only the move text. Default "keep distance at 8 in".
+   */
+  textKeepDistanceSuffixImperial?: string;
+  /**
+   * Neon UI only. Added after `textMoveAway` / `textMoveCloser` with " - " when much too close or too far during
+   * the scan, metric. An empty string shows only the move text. Default "keep distance at 20 cm".
+   */
+  textKeepDistanceSuffixMetric?: string;
   textMoveAway?: string;
   textMoveCloser?: string;
   textOk?: string;

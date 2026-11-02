@@ -10,6 +10,22 @@ export interface TreadResultRegion {
   value_inch: number;
   value_inch_32nds: number;
   value_mm: number;
+  /**
+   * BETA: Shoulder wear estimate, set only on the first and the last region.
+   * Absent on the middle regions, on `global`, when `shoulderWearEnabled` was
+   * not set on `initialize`, and whenever there is no estimate.
+   */
+  shoulder_wear?: ShoulderWear | null;
+}
+
+/**
+ * BETA: Shoulder wear estimate for the tire shoulder next to an outer region.
+ * An automated estimate from the scan images, not a guaranteed assessment of
+ * the tire's condition.
+ */
+export interface ShoulderWear {
+  /** Whether the tire shoulder is probably worn. */
+  worn: boolean;
 }
 
 export interface TreadDepthFeedbackRegion {

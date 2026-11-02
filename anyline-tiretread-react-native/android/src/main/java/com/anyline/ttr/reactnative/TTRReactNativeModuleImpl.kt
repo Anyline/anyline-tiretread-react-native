@@ -83,10 +83,12 @@ internal class TTRReactNativeModuleImpl(
     val licenseKey = options.getString("licenseKey")?.trim().orEmpty()
     val customTag = options.getString("customTag")?.trim().takeUnless { it.isNullOrEmpty() }
     val uploadTimeoutMillis = options.getDoubleOrNull("uploadTimeoutMillis")?.toLong()
+    val shoulderWearEnabled = options.getBooleanOrNull("shoulderWearEnabled") ?: false
 
     val baseOptions = InitOptions(
       customTag = customTag,
       wrapperInfo = WrapperInfo.ReactNative(BuildConfig.WRAPPER_VERSION),
+      shoulderWearEnabled = shoulderWearEnabled,
     )
     val initOptions = uploadTimeoutMillis
       ?.let { baseOptions.copy(uploadTimeoutMillis = it) }
