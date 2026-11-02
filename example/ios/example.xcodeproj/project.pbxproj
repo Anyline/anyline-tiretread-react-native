@@ -263,7 +263,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 16000000;
+				CURRENT_PROJECT_VERSION = 16001000;
 				DEVELOPMENT_TEAM = 35RHL53WRE;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = example/Info.plist;
@@ -272,7 +272,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 16.0.0;
+				MARKETING_VERSION = 16.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -293,7 +293,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 16000000;
+				CURRENT_PROJECT_VERSION = 16001000;
 				DEVELOPMENT_TEAM = 35RHL53WRE;
 				INFOPLIST_FILE = example/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -301,7 +301,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 16.0.0;
+				MARKETING_VERSION = 16.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

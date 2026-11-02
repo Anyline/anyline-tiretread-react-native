@@ -58,6 +58,7 @@ private class FakeRuntime : TTRRuntimeProtocol {
   var lastInitLicenseKey: String? = null
   var lastInitCustomTag: String? = null
   var lastInitWrapperVersion: String? = null
+  var lastInitShoulderWearEnabled: Boolean? = null
   var lastGetResultUuid: String? = null
   var lastGetResultTimeout: Int? = null
   var lastGetHeatmapUuid: String? = null
@@ -77,6 +78,7 @@ private class FakeRuntime : TTRRuntimeProtocol {
     lastInitLicenseKey = licenseKey
     lastInitCustomTag = options.customTag
     lastInitWrapperVersion = (options.wrapperInfo as? WrapperInfo.ReactNative)?.version
+    lastInitShoulderWearEnabled = options.shoulderWearEnabled
     onComplete(nextInit)
   }
 
@@ -249,6 +251,20 @@ class TTRReactNativeModuleImplTest {
     assertEquals("license", fakeRuntime.lastInitLicenseKey)
     assertEquals("wrapper-tag", fakeRuntime.lastInitCustomTag)
     assertEquals(BuildConfig.WRAPPER_VERSION, fakeRuntime.lastInitWrapperVersion)
+    assertEquals(false, fakeRuntime.lastInitShoulderWearEnabled)
+  }
+
+  @Test
+  fun `initialize forwards shoulderWearEnabled`() {
+    val promise = CapturingPromise()
+    val options = JavaOnlyMap().apply {
+      putString("licenseKey", "license")
+      putBoolean("shoulderWearEnabled", true)
+    }
+
+    impl.initialize(options, promise)
+
+    assertEquals(true, fakeRuntime.lastInitShoulderWearEnabled)
   }
 
   @Test

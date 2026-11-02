@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [16.1.0] - 2026-11-02
+
+### Added
+
+- BETA: Added a shoulder wear estimate to the result, enabled with the new `shoulderWearEnabled` option of `initialize` (off by default). The first and the last `TreadResultRegion` in `TreadDepthResult.regions` carry a `shoulder_wear` with `worn`, an estimate of whether the tire shoulder next to that region is probably worn. It is absent on the middle regions, on `global`, when it is not enabled, and when there is no estimate. See "Shoulder Wear (BETA)" in the README.
+- Added `DistanceIndicatorConfig` texts for the distance messages of the Neon UI, so they can be localized: `textKeepDistanceMetric` and `textKeepDistanceImperial` before the scan, `textKeepDistanceSuffixMetric` and `textKeepDistanceSuffixImperial` after `textMoveAway` / `textMoveCloser` during the scan, and `textIncorrectDistance`. When a text is not set, the scan screen shows the same text as before.
+
+### Changed
+
+- Updated the bundled Anyline Tire Tread SDK to **16.1.0** (Android & iOS). Its changes are listed in this section.
+- Changed the reported error code for failed frame uploads in tread depth scans. When a frame upload fails because of the network (for example a timeout or no connection), the scan now reports `NETWORK_ERROR` / `UPLOAD_FAILED`. Before, it reported `SCAN_ERROR` / `INTERNAL_ERROR`. If you show a message per error code, check how you handle `UPLOAD_FAILED`. Backend measurement errors still report `MEASUREMENT_ERROR`.
+
+### Fixed
+
+- Fixed tread depth scans failing with `NO_IMAGES_UPLOADED` on slow connections. Since 15.0.0, a scan failed if no frame had finished uploading when the scan countdown ended, even though the uploads were still running. An upload that takes longer than `uploadTimeoutMillis` still fails the scan. A scan that captured no frames still fails with `NO_IMAGES_UPLOADED`.
+
+### Dependencies
+Tire Tread SDK 16.1.0: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html#16-1-0-2026-11-02).
+
 ## [16.0.0] - 2026-10-02
 
 ### Breaking Changes

@@ -15,6 +15,7 @@ type InitializeArgs = {
   licenseKey: string;
   customTag: string | null;
   uploadTimeoutMillis: number | null;
+  shoulderWearEnabled: boolean | null;
 };
 
 type ScanArgs = {

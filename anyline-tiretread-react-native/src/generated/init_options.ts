@@ -6,4 +6,11 @@ export interface InitOptions {
      * Raise for poor-connectivity fleets, lower to fail fast. Default: 20000.
      */
     uploadTimeoutMillis?: null | number;
+    /**
+     * BETA: Whether results carry the shoulder wear estimate
+     * (`TreadResultRegion.shoulder_wear`). When `false`, it is always absent.
+     * Read once at initialize; call `initialize` again to change it.
+     * Default: false.
+     */
+    shoulderWearEnabled?: boolean | null;
 }

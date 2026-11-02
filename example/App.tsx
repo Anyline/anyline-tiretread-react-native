@@ -21,6 +21,7 @@ import {
   TireSidewall,
   type ScanOptions,
   type SdkError,
+  type ShoulderWear,
   type TireTreadConfig,
   type TreadDepthResult,
   type TswScanOutcome,
@@ -128,6 +129,11 @@ function deviceSupportDetail(t: Theme, checked: boolean, supported: boolean): St
   return { text: 'Device is not supported', color: t.danger };
 }
 
+function shoulderWearText(shoulderWear: ShoulderWear | null | undefined): string {
+  if (shoulderWear == null) return 'No estimate';
+  return shoulderWear.worn ? 'Worn' : 'Not worn';
+}
+
 function initDetail(t: Theme, initializing: boolean, initialized: boolean, failed: boolean): StatusDetail {
   if (initializing) return { text: 'Initializing…', color: t.textTertiary };
   if (initialized) return { text: 'Initialized · ready to scan', color: t.success };
@@ -156,6 +162,7 @@ export default function App(): React.JSX.Element {
   const [isInitializing, setIsInitializing] = React.useState(false);
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [initFailed, setInitFailed] = React.useState(false);
+  const [shoulderWearEnabled, setShoulderWearEnabled] = React.useState(false);
 
   const [sidewallSupported, setSidewallSupported] = React.useState(true);
   const [isSidewallScanning, setIsSidewallScanning] = React.useState(false);
@@ -235,7 +242,7 @@ export default function App(): React.JSX.Element {
     setIsInitializing(true);
     setInitFailed(false);
     try {
-      const res = await initialize(Config.TTR_LICENSE_KEY || '');
+      const res = await initialize(Config.TTR_LICENSE_KEY || '', { shoulderWearEnabled });
       if (res.ok) {
         setIsInitialized(true);
         return;
@@ -248,7 +255,7 @@ export default function App(): React.JSX.Element {
     } finally {
       setIsInitializing(false);
     }
-  }, [isInitializing, showToast]);
+  }, [isInitializing, shoulderWearEnabled, showToast]);
 
   const handleScanPress = React.useCallback(async () => {
     if (!isInitialized || isScanning) return;
@@ -394,6 +401,14 @@ export default function App(): React.JSX.Element {
                 onPress={handleDeviceSupportPress}
               />
             }
+          />
+          <Hairline />
+          <SwitchRow
+            label="Shoulder wear (BETA)"
+            sub="Applies on the next initialize"
+            value={shoulderWearEnabled}
+            onValueChange={setShoulderWearEnabled}
+            disabled={isInitializing}
           />
           <Hairline />
           <SetupRow
@@ -549,6 +564,18 @@ export default function App(): React.JSX.Element {
                   <Text style={[styles.regionName, { color: t.textPrimary }]}>Region {index + 1}</Text>
                   <Text style={[styles.regionValue, { color: t.textSecondary }]}>
                     {region.available ? `${formatNumber(region.value_mm)} mm` : 'Unavailable'}
+                  </Text>
+                </View>
+              ))}
+              <Text style={[styles.caption, { color: t.textTertiary }]}>Shoulder wear (BETA)</Text>
+              {[
+                { side: 'Left', region: treadDepthResult.regions[0] },
+                { side: 'Right', region: treadDepthResult.regions[treadDepthResult.regions.length - 1] },
+              ].map(({ side, region }) => (
+                <View key={`shoulder-${side}`} style={[styles.regionRow, { backgroundColor: t.inset }]}>
+                  <Text style={[styles.regionName, { color: t.textPrimary }]}>{side}</Text>
+                  <Text style={[styles.regionValue, { color: t.textSecondary }]}>
+                    {shoulderWearText(region?.shoulder_wear)}
                   </Text>
                 </View>
               ))}

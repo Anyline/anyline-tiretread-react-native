@@ -147,18 +147,20 @@ class TTRModuleImpl {
       let raw = (options["customTag"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
       return (raw?.isEmpty == false) ? raw : nil
     }()
-    // Kotlin/Native only exposes the 3-param InitOptions init to Swift, so we
-    // must pass a value even when the caller omits one. The SDK exposes its
+    // Kotlin/Native exposes no default arguments to Swift, so we must pass a
+    // value even when the caller omits one. The SDK exposes its
     // own default via the InitOptions companion; use that instead of a literal.
     let uploadTimeoutMillis = (options["uploadTimeoutMillis"] as? NSNumber)?.int64Value
       ?? InitOptions.companion.DEFAULT_UPLOAD_TIMEOUT_MILLIS
+    let shoulderWearEnabled = (options["shoulderWearEnabled"] as? Bool) ?? false
 
     runtime.initialize(
       licenseKey: licenseKey,
       options: InitOptions(
         customTag: customTag,
         wrapperInfo: WrapperInfo.ReactNative(version: wrapperVersionProvider.currentVersion()),
-        uploadTimeoutMillis: uploadTimeoutMillis
+        uploadTimeoutMillis: uploadTimeoutMillis,
+        shoulderWearEnabled: shoulderWearEnabled
       )
     ) { sdkResult in
       let bridged = Bridge.shared.unit(sdkResult: sdkResult)

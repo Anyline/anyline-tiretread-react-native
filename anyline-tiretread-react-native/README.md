@@ -154,6 +154,12 @@ const init = await initialize('YOUR_LICENSE_KEY', {
 });
 ```
 
+To receive the shoulder wear estimate (BETA) in your results, set `shoulderWearEnabled` (see [Shoulder Wear (BETA)](#shoulder-wear-beta)):
+
+```typescript
+const init = await initialize('YOUR_LICENSE_KEY', { shoulderWearEnabled: true });
+```
+
 ### 2. Scan
 
 Opens a full-screen camera UI. The user positions the phone near the tire and the SDK captures frames automatically.
@@ -383,12 +389,33 @@ A successful `getResult` call returns a `TreadDepthResult`. Here's what you get 
   value_mm: number,                 // depth in millimeters
   value_inch: number,               // depth in inches
   value_inch_32nds: number,         // depth in 32nds of an inch
+  shoulder_wear?: {                 // BETA, first and last region only; see below
+    worn: boolean,
+  },
 }
 
 // MeasurementStatus:
 'Unknown' | 'WaitingForImages' | 'Processing'
   | 'ResultReady' | 'ResultAndReportReady'
   | 'Completed' | 'Aborted' | 'Failed'
+```
+
+## Shoulder Wear (BETA)
+
+> Shoulder wear is a BETA feature. Its shape may change in a future release. The value is an automated estimate from the scan images, not a guaranteed assessment of the tire's condition.
+
+To receive it, pass `shoulderWearEnabled: true` to `initialize`. It is off by default and applies to every result fetched after that initialization; to change it, call `initialize` again.
+
+The first and the last `TreadResultRegion` in `regions` then carry a `shoulder_wear`, an estimate of whether the tire shoulder next to that region is worn:
+
+- `shoulder_wear.worn`: `true` if the shoulder is probably worn, `false` if it is probably not.
+- `shoulder_wear` is absent on the middle regions and on `global`.
+- `shoulder_wear` is also absent when `shoulderWearEnabled` is not set, or when there is no estimate for the measurement.
+
+```typescript
+const { regions } = result.value;
+const leftShoulderWorn = regions[0]?.shoulder_wear?.worn;
+const rightShoulderWorn = regions[regions.length - 1]?.shoulder_wear?.worn;
 ```
 
 ## Tire Sidewall (TSW) Scanner
