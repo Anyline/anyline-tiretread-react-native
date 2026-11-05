@@ -37,6 +37,10 @@
                                        resolver:(RCTPromiseResolveBlock)resolve
                                        rejecter:(RCTPromiseRejectBlock)reject;
 
+- (void)sendShoulderWearFeedbackWithOptions:(NSDictionary *)options
+                                   resolver:(RCTPromiseResolveBlock)resolve
+                                   rejecter:(RCTPromiseRejectBlock)reject;
+
 - (void)sendTireIdFeedbackWithOptions:(NSDictionary *)options
                              resolver:(RCTPromiseResolveBlock)resolve
                              rejecter:(RCTPromiseRejectBlock)reject;

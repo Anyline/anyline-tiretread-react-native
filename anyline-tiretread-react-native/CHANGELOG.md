@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [16.2.0] - 2026-11-05
+
+### Added
+
+- BETA: Added `sendShoulderWearFeedback(measurementUUID, { left, right })` to send user corrected shoulder wear results for the left and the right shoulder, each as a `ShoulderWear` (`{ worn }`). It works whether or not `shoulderWearEnabled` is set. See "User Corrected Shoulder Wear" in the README.
+
+### Changed
+
+- Updated the bundled Anyline Tire Tread SDK to **16.2.0** (Android & iOS). Its changes are listed in this section.
+
+### Dependencies
+Tire Tread SDK 16.2.0: [Release Notes](https://documentation.anyline.com/tiretreadsdk-component/latest/release-notes.html#16-2-0-2026-11-05).
+
 ## [16.1.0] - 2026-11-02
 
 ### Added

@@ -29,6 +29,7 @@ import {
 import Config from 'react-native-config';
 
 import { prettyJson, sizeFromResultJson, tireWidthFromResultJson } from './sidewall';
+import { FeedbackSection } from './feedback';
 
 import {
   GroupHeader,
@@ -579,6 +580,13 @@ export default function App(): React.JSX.Element {
                   </Text>
                 </View>
               ))}
+              {measurementUUID ? (
+                <FeedbackSection
+                  measurementUUID={measurementUUID}
+                  result={treadDepthResult}
+                  onMessage={showToast}
+                />
+              ) : null}
             </>
           ) : null}
         </SectionCard>

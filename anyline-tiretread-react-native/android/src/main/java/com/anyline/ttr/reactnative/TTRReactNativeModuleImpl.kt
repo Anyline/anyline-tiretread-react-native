@@ -25,6 +25,7 @@ import io.anyline.tiretread.sdk.api.TswSupportStatus
 import io.anyline.tiretread.sdk.tsw.ui.configs.TswScannerConfig
 import io.anyline.tiretread.sdk.types.Heatmap
 import io.anyline.tiretread.sdk.types.MeasurementInfo
+import io.anyline.tiretread.sdk.types.ShoulderWear
 import io.anyline.tiretread.sdk.types.TreadDepthResult
 import io.anyline.tiretread.sdk.types.TreadResultRegion
 import io.anyline.tiretread.sdk.types.WrapperInfo
@@ -185,6 +186,18 @@ internal class TTRReactNativeModuleImpl(
       measurementUUID = measurementUUID,
       treadResultRegions = decoded,
     ) { result ->
+      resolveOnJs {
+        promise.resolve(BridgeValue.toWritableMap(Bridge.measurementInfo(result)))
+      }
+    }
+  }
+
+  fun sendShoulderWearFeedback(options: ReadableMap, promise: Promise) {
+    val measurementUUID = options.getString("measurementUUID")?.trim().orEmpty()
+    val left = options.getBooleanOrNull("leftWorn")?.let { ShoulderWear(isWorn = it) }
+    val right = options.getBooleanOrNull("rightWorn")?.let { ShoulderWear(isWorn = it) }
+
+    runtime.sendShoulderWearFeedback(measurementUUID = measurementUUID, left = left, right = right) { result ->
       resolveOnJs {
         promise.resolve(BridgeValue.toWritableMap(Bridge.measurementInfo(result)))
       }
@@ -454,6 +467,13 @@ internal interface TTRRuntimeProtocol {
     onComplete: (SdkResult<MeasurementInfo>) -> Unit,
   )
 
+  fun sendShoulderWearFeedback(
+    measurementUUID: String,
+    left: ShoulderWear?,
+    right: ShoulderWear?,
+    onComplete: (SdkResult<MeasurementInfo>) -> Unit,
+  )
+
   fun sendTireIdFeedback(
     measurementUUID: String,
     tireId: String,
@@ -545,6 +565,20 @@ internal class DefaultRuntime(
     AnylineTireTread.sendTreadDepthResultFeedback(
       measurementUUID = measurementUUID,
       treadResultRegions = treadResultRegions,
+      onComplete = onComplete,
+    )
+  }
+
+  override fun sendShoulderWearFeedback(
+    measurementUUID: String,
+    left: ShoulderWear?,
+    right: ShoulderWear?,
+    onComplete: (SdkResult<MeasurementInfo>) -> Unit,
+  ) {
+    AnylineTireTread.sendShoulderWearFeedback(
+      measurementUUID = measurementUUID,
+      left = left,
+      right = right,
       onComplete = onComplete,
     )
   }

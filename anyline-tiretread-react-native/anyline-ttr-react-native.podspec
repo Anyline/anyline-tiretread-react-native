@@ -3,8 +3,8 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 # Bundled SDK pin. Updated together at release time.
-anyline_ttr_sdk_version  = '16.1.0'
-anyline_ttr_sdk_checksum = '95b276ed01f80f8c5240284eadbe9e14026abe14e0ad61a64eac78f0653d6b06'
+anyline_ttr_sdk_version  = '16.2.0'
+anyline_ttr_sdk_checksum = '7c679ec955b072afc68a547820c9f3710195b182b83786163183b64bc683a263'
 
 Pod::Spec.new do |s|
   s.name         = "anyline-ttr-react-native"

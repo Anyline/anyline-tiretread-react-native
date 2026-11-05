@@ -20,6 +20,7 @@ import io.anyline.tiretread.sdk.api.TswScanResult
 import io.anyline.tiretread.sdk.api.TswSupportStatus
 import io.anyline.tiretread.sdk.types.Heatmap
 import io.anyline.tiretread.sdk.types.MeasurementInfo
+import io.anyline.tiretread.sdk.types.ShoulderWear
 import io.anyline.tiretread.sdk.types.TreadDepthResult
 import io.anyline.tiretread.sdk.types.TreadResultRegion
 import io.anyline.tiretread.sdk.types.WrapperInfo
@@ -54,6 +55,9 @@ private class FakeRuntime : TTRRuntimeProtocol {
   var nextTireIdFeedback: SdkResult<MeasurementInfo> = SdkResult.Err(
     SdkError(code = ErrorCode.INTERNAL_ERROR, message = "not configured")
   )
+  var nextShoulderWearFeedback: SdkResult<MeasurementInfo> = SdkResult.Err(
+    SdkError(code = ErrorCode.INTERNAL_ERROR, message = "not configured")
+  )
 
   var lastInitLicenseKey: String? = null
   var lastInitCustomTag: String? = null
@@ -69,6 +73,9 @@ private class FakeRuntime : TTRRuntimeProtocol {
   var lastTireIdText: String? = null
   var lastTreadDepthResultUuid: String? = null
   var lastTreadDepthRegions: List<TreadResultRegion>? = null
+  var lastShoulderWearUuid: String? = null
+  var lastShoulderWearLeft: ShoulderWear? = null
+  var lastShoulderWearRight: ShoulderWear? = null
 
   override fun initialize(
     licenseKey: String,
@@ -120,6 +127,18 @@ private class FakeRuntime : TTRRuntimeProtocol {
     lastTreadDepthResultUuid = measurementUUID
     lastTreadDepthRegions = treadResultRegions
     onComplete(nextTreadDepthFeedback)
+  }
+
+  override fun sendShoulderWearFeedback(
+    measurementUUID: String,
+    left: ShoulderWear?,
+    right: ShoulderWear?,
+    onComplete: (SdkResult<MeasurementInfo>) -> Unit,
+  ) {
+    lastShoulderWearUuid = measurementUUID
+    lastShoulderWearLeft = left
+    lastShoulderWearRight = right
+    onComplete(nextShoulderWearFeedback)
   }
 
   override fun sendTireIdFeedback(
@@ -377,6 +396,39 @@ class TTRReactNativeModuleImplTest {
     assertEquals(2, fakeRuntime.lastTreadDepthRegions!!.size)
     assertTrue(fakeRuntime.lastTreadDepthRegions!![0].isAvailable)
     assertEquals(5.5, fakeRuntime.lastTreadDepthRegions!![0].valueMm, 0.001)
+  }
+
+  @Test
+  fun `sendShoulderWearFeedback forwards both sides`() {
+    val promise = CapturingPromise()
+    val options = JavaOnlyMap().apply {
+      putString("measurementUUID", "shoulder-uuid")
+      putBoolean("leftWorn", true)
+      putBoolean("rightWorn", false)
+    }
+
+    impl.sendShoulderWearFeedback(options, promise)
+
+    waitFor { fakeRuntime.lastShoulderWearUuid != null }
+    assertEquals("shoulder-uuid", fakeRuntime.lastShoulderWearUuid)
+    assertEquals(true, fakeRuntime.lastShoulderWearLeft?.isWorn)
+    assertEquals(false, fakeRuntime.lastShoulderWearRight?.isWorn)
+  }
+
+  @Test
+  fun `sendShoulderWearFeedback maps a null side to null`() {
+    val promise = CapturingPromise()
+    val options = JavaOnlyMap().apply {
+      putString("measurementUUID", "shoulder-uuid")
+      putNull("leftWorn")
+      putBoolean("rightWorn", true)
+    }
+
+    impl.sendShoulderWearFeedback(options, promise)
+
+    waitFor { fakeRuntime.lastShoulderWearUuid != null }
+    assertNull(fakeRuntime.lastShoulderWearLeft)
+    assertEquals(true, fakeRuntime.lastShoulderWearRight?.isWorn)
   }
 
   @Test
