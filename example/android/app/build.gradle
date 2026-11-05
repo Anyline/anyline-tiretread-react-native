@@ -82,8 +82,8 @@ android {
         applicationId "io.anyline.tiretread.reactnative.example"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16001000
-        versionName "16.1.0"
+        versionCode 16002000
+        versionName "16.2.0"
     }
     buildTypes {
         debug {

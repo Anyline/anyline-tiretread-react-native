@@ -16,6 +16,7 @@ final class FakeRuntime: TTRRuntimeProtocol {
   var nextCommentFeedback: SdkResult<MeasurementInfo> = makeErrorSdkResult()
   var nextTreadDepthFeedback: SdkResult<MeasurementInfo> = makeErrorSdkResult()
   var nextTireIdFeedback: SdkResult<MeasurementInfo> = makeErrorSdkResult()
+  var nextShoulderWearFeedback: SdkResult<MeasurementInfo> = makeErrorSdkResult()
 
   var lastInitLicenseKey: String?
   var lastInitCustomTag: String?
@@ -30,6 +31,9 @@ final class FakeRuntime: TTRRuntimeProtocol {
   var lastTireIdText: String?
   var lastTreadDepthResultUuid: String?
   var lastTreadDepthRegions: [TreadResultRegion]?
+  var lastShoulderWearUuid: String?
+  var lastShoulderWearLeft: ShoulderWear?
+  var lastShoulderWearRight: ShoulderWear?
 
   var lastInitUploadTimeoutMillis: Int64?
   var lastInitShoulderWearEnabled: Bool?
@@ -85,6 +89,18 @@ final class FakeRuntime: TTRRuntimeProtocol {
     lastTreadDepthResultUuid = measurementUUID
     lastTreadDepthRegions = treadResultRegions
     onComplete(nextTreadDepthFeedback)
+  }
+
+  func sendShoulderWearFeedback(
+    measurementUUID: String,
+    left: ShoulderWear?,
+    right: ShoulderWear?,
+    onComplete: @escaping (SdkResult<MeasurementInfo>) -> Void
+  ) {
+    lastShoulderWearUuid = measurementUUID
+    lastShoulderWearLeft = left
+    lastShoulderWearRight = right
+    onComplete(nextShoulderWearFeedback)
   }
 
   func sendTireIdFeedback(
@@ -320,6 +336,41 @@ final class TTRModuleImplTests: XCTestCase {
     XCTAssertEqual(fakeRuntime.lastTreadDepthRegions?.count, 2)
     XCTAssertEqual(fakeRuntime.lastTreadDepthRegions?[0].isAvailable, true)
     XCTAssertEqual(fakeRuntime.lastTreadDepthRegions?[0].valueMm ?? 0.0, 5.5, accuracy: 0.001)
+  }
+
+  func testSendShoulderWearFeedbackForwardsBothSides() {
+    let expectation = expectation(description: "sendShoulderWearFeedback completes")
+    let options: NSDictionary = [
+      "measurementUUID": "shoulder-uuid",
+      "leftWorn": true,
+      "rightWorn": false,
+    ]
+
+    impl.sendShoulderWearFeedback(options: options) { _ in
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 2)
+    XCTAssertEqual(fakeRuntime.lastShoulderWearUuid, "shoulder-uuid")
+    XCTAssertEqual(fakeRuntime.lastShoulderWearLeft?.isWorn, true)
+    XCTAssertEqual(fakeRuntime.lastShoulderWearRight?.isWorn, false)
+  }
+
+  func testSendShoulderWearFeedbackMapsNullSideToNil() {
+    let expectation = expectation(description: "sendShoulderWearFeedback completes")
+    let options: NSDictionary = [
+      "measurementUUID": "shoulder-uuid",
+      "leftWorn": NSNull(),
+      "rightWorn": true,
+    ]
+
+    impl.sendShoulderWearFeedback(options: options) { _ in
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 2)
+    XCTAssertNil(fakeRuntime.lastShoulderWearLeft)
+    XCTAssertEqual(fakeRuntime.lastShoulderWearRight?.isWorn, true)
   }
 
   func testResultErrResolvesWithOkFalse() {

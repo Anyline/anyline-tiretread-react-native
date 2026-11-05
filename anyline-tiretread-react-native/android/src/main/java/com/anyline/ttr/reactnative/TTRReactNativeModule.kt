@@ -49,6 +49,10 @@ class TTRReactNativeModule(context: ReactApplicationContext) :
     impl.sendTreadDepthResultFeedback(options, promise)
 
   @ReactMethod
+  fun sendShoulderWearFeedback(options: ReadableMap, promise: Promise) =
+    impl.sendShoulderWearFeedback(options, promise)
+
+  @ReactMethod
   fun sendTireIdFeedback(options: ReadableMap, promise: Promise) = impl.sendTireIdFeedback(options, promise)
 
   @ReactMethod

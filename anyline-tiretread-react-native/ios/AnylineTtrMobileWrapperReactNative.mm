@@ -86,6 +86,13 @@ RCT_EXPORT_METHOD(sendTreadDepthResultFeedback:(NSDictionary *)options
   [self.plugin sendTreadDepthResultFeedbackWithOptions:options resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(sendShoulderWearFeedback:(NSDictionary *)options
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [self.plugin sendShoulderWearFeedbackWithOptions:options resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(sendTireIdFeedback:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

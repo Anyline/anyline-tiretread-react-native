@@ -184,6 +184,17 @@ public final class AnylineTtrPlugin: NSObject, TTRPresenter {
     }
   }
 
+  @objc(sendShoulderWearFeedbackWithOptions:resolver:rejecter:)
+  public func sendShoulderWearFeedback(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject _: @escaping RCTPromiseRejectBlock
+  ) {
+    impl.sendShoulderWearFeedback(options: options) { result in
+      self.resolveOnMain(resolve, result)
+    }
+  }
+
   @objc(sendTireIdFeedbackWithOptions:resolver:rejecter:)
   public func sendTireIdFeedback(
     options: NSDictionary,

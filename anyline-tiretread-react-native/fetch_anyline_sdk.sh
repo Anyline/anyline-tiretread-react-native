@@ -19,8 +19,21 @@ framework="AnylineTireTreadSdk.xcframework"
 stamp="$framework/.anyline-vendored-version"
 expected="$version $checksum"
 
+# A release candidate (X.Y.Z-rc.N) is published to the release-candidates
+# channel, and its archive name carries only the base version X.Y.Z.
+case "$version" in
+  *-rc.*)
+    channel="release-candidates"
+    archive_version="${version%%-*}"
+    ;;
+  *)
+    channel="stable"
+    archive_version="$version"
+    ;;
+esac
+
 # The _spm_ archive holds the xcframework at its root.
-url="https://ttr-sdk-ios.anyline.io/stable/$version/AnylineTireTreadSdk_spm_$version.zip"
+url="https://ttr-sdk-ios.anyline.io/$channel/$version/AnylineTireTreadSdk_spm_$archive_version.zip"
 
 # Keyed on version+checksum so an SDK bump cannot reuse a stale copy.
 if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$expected" ]; then

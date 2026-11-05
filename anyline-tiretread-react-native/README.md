@@ -231,6 +231,12 @@ await sendTreadDepthResultFeedback(measurementUUID, [
 
 // Submit a tire identifier
 await sendTireIdFeedback(measurementUUID, 'FL-001');
+
+// BETA: submit corrected shoulder wear results (see "User Corrected Shoulder Wear")
+await sendShoulderWearFeedback(measurementUUID, {
+  left: { worn: true },
+  right: { worn: false },
+});
 ```
 
 All feedback functions return `SdkResult<MeasurementInfo>`.
@@ -250,6 +256,7 @@ All functions are fully typed. Return types and error shapes are available via T
 - `sendCommentFeedback(measurementUUID, comment)` — Attach a text comment to a measurement
 - `sendTreadDepthResultFeedback(measurementUUID, treadResultRegions)` — Submit corrected tread depth values
 - `sendTireIdFeedback(measurementUUID, tireId)` — Submit a corrected tire identifier
+- `sendShoulderWearFeedback(measurementUUID, { left?, right? })`: BETA, submit corrected shoulder wear results
 
 ### Tire Sidewall (TSW)
 
@@ -416,6 +423,28 @@ The first and the last `TreadResultRegion` in `regions` then carry a `shoulder_w
 const { regions } = result.value;
 const leftShoulderWorn = regions[0]?.shoulder_wear?.worn;
 const rightShoulderWorn = regions[regions.length - 1]?.shoulder_wear?.worn;
+```
+
+### User Corrected Shoulder Wear
+
+To send user corrected shoulder wear results, use `sendShoulderWearFeedback`. It takes the measurement UUID and an object with `left` and `right`. It works whether or not `shoulderWearEnabled` is set.
+
+Send the state the user sees, the same way as for the tread depth values:
+
+- For a side the user corrected, pass `{ worn: ... }` with the user's correction.
+- For a side the user did not change, pass the `shoulder_wear` from the result: the first region for `left`, the last region for `right`.
+- Leave a side out (or pass `null`) only when there is neither an estimate nor a correction for it.
+
+> **Important:** At least one side is required. With no side, the result is an error with the code `INVALID_ARGUMENT`. Each call replaces the shoulder wear feedback sent before for the same measurement, so a side left out clears an earlier correction for that side.
+
+```typescript
+const res = await sendShoulderWearFeedback(measurementUUID, {
+  left: { worn: true },
+  right: regions[regions.length - 1]?.shoulder_wear,
+});
+if (!res.ok) {
+  console.warn(res.error.code, res.error.message);
+}
 ```
 
 ## Tire Sidewall (TSW) Scanner

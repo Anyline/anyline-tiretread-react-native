@@ -38,6 +38,12 @@ type TreadDepthFeedbackArgs = {
   treadResultRegions: TreadDepthFeedbackRegion[];
 };
 
+type ShoulderWearFeedbackArgs = {
+  measurementUUID: string;
+  leftWorn: boolean | null;
+  rightWorn: boolean | null;
+};
+
 type TireIdFeedbackArgs = {
   measurementUUID: string;
   tireId: string;
@@ -61,6 +67,9 @@ export interface Spec {
   ): Promise<SdkResult<MeasurementInfo>>;
   sendTreadDepthResultFeedback(
     options: TreadDepthFeedbackArgs
+  ): Promise<SdkResult<MeasurementInfo>>;
+  sendShoulderWearFeedback(
+    options: ShoulderWearFeedbackArgs
   ): Promise<SdkResult<MeasurementInfo>>;
   sendTireIdFeedback(
     options: TireIdFeedbackArgs

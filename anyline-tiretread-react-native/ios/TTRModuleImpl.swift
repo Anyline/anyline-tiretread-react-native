@@ -34,6 +34,13 @@ protocol TTRRuntimeProtocol {
     onComplete: @escaping (SdkResult<MeasurementInfo>) -> Void
   )
 
+  func sendShoulderWearFeedback(
+    measurementUUID: String,
+    left: ShoulderWear?,
+    right: ShoulderWear?,
+    onComplete: @escaping (SdkResult<MeasurementInfo>) -> Void
+  )
+
   func sendTireIdFeedback(
     measurementUUID: String,
     tireId: String,
@@ -264,6 +271,17 @@ class TTRModuleImpl {
     }
 
     runtime.sendTreadDepthResultFeedback(measurementUUID: measurementUUID, treadResultRegions: regions) { sdkResult in
+      completion(Bridge.shared.measurementInfo(sdkResult: sdkResult))
+    }
+  }
+
+  func sendShoulderWearFeedback(options: NSDictionary, completion: @escaping (Any) -> Void) {
+    let measurementUUID = (options["measurementUUID"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    // A side sent as null arrives as NSNull, which `as? Bool` maps to nil.
+    let left = (options["leftWorn"] as? Bool).map { ShoulderWear(isWorn: $0) }
+    let right = (options["rightWorn"] as? Bool).map { ShoulderWear(isWorn: $0) }
+
+    runtime.sendShoulderWearFeedback(measurementUUID: measurementUUID, left: left, right: right) { sdkResult in
       completion(Bridge.shared.measurementInfo(sdkResult: sdkResult))
     }
   }

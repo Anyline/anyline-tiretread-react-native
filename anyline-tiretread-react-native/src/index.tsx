@@ -206,6 +206,33 @@ export function sendTreadDepthResultFeedback(
   });
 }
 
+/**
+ * BETA: Sends the user corrected shoulder wear results for a measurement.
+ *
+ * Send the state the user sees: for a side the user did not change, pass the
+ * `shoulder_wear` estimate from the result (the first region for `left`, the
+ * last region for `right`). Leave a side out (or pass `null`) only when there
+ * is neither an estimate nor a correction for it. At least one side is
+ * required; with no side the result is an error with code `INVALID_ARGUMENT`.
+ *
+ * Each call replaces the shoulder wear feedback sent before for the same
+ * measurement, so a side left out clears an earlier correction for that side.
+ * Works whether or not `shoulderWearEnabled` was set on `initialize`.
+ */
+export function sendShoulderWearFeedback(
+  measurementUUID: string,
+  shoulderWear: {
+    left?: ShoulderWear | null;
+    right?: ShoulderWear | null;
+  }
+): Promise<SdkResult<MeasurementInfo>> {
+  return AnylineTtrMobileWrapperReactNative.sendShoulderWearFeedback({
+    measurementUUID,
+    leftWorn: shoulderWear.left?.worn ?? null,
+    rightWorn: shoulderWear.right?.worn ?? null,
+  });
+}
+
 export function sendTireIdFeedback(
   measurementUUID: string,
   tireId: string
